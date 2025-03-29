@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FAFSA Trends Visualization Project</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Exploring FAFSA Application Trends (2023–2024)</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="data_information.html">Data</a>
+      <a href="visualization.html">Visualizations</a>
+      <a href="conclusion.html">Conclusion</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Project Overview</h2>
+      <p>This project explores the Free Application for Federal Student Aid (FAFSA) application trends across 5 quarters during the 2023–2024 academic year. Our goal is to uncover institutional and regional patterns that can inform education policy and outreach strategies. Tasks involved data cleaning, exploratory data analysis, visualization (with both D3.js and Altair), and web-based storytelling.</p>
+    </section>
+
+    <section>
+      <h2>Data Description</h2>
+      <p>The dataset (<code>cleaned.csv</code>) contains <strong>6108 U.S. institutions</strong>, collected from the <a href="https://studentaid.gov/data-center" target="_blank">Federal Student Aid Data Center</a>. Key columns include:</p>
+      <ul>
+        <li><strong>School Information:</strong> Name, State, Zip Code, Type</li>
+        <li><strong>FAFSA Applications:</strong> Dependent and Independent counts for Q1–Q5</li>
+        <li><strong>Quarterly Totals</strong> per school and state</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>References</h2>
+      <ul>
+        <li><a href="https://doi.org/10.1093/qje/qjs017" target="_blank">Bettinger et al. (2012) - The Role of Application Assistance in College Decisions</a></li>
+        <li><a href="https://doi.org/10.17310/ntj.2006.2.07" target="_blank">Dynarski & Scott-Clayton (2006) - The Cost of Complexity in Student Aid</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Embedded Altair Visualization</h2>
+      <iframe src="altair_chart.html" width="700" height="500" style="border:none;"></iframe>
+      <p><strong>Takeaway:</strong> This chart shows school type distribution by total FAFSA applications, highlighting how Public institutions consistently receive the largest share of applications.</p>
+    </section>
+  </main>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="visualization.js"></script>
+</body>
+</html>
