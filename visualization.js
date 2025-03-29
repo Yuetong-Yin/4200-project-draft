@@ -1,4 +1,4 @@
-// visualization.js with Quarter Interactivity
+// visualization.js with Quarter Interactivity and NaN-safe scatter plot
 
 (async function () {
   const data = await d3.csv("cleaned.csv", d3.autoType);
@@ -26,7 +26,7 @@
     g3.selectAll("*").remove();
     g4.selectAll("*").remove();
 
-    // Chart 1: Bar
+    // Chart 1: Bar Chart
     const stateTotals = d3.rollup(
       data,
       v => d3.sum(v, d => d[`Quarterly Total_${quarter}`]),
@@ -47,7 +47,7 @@
       .attr("fill", "steelblue");
 
     // Chart 2: Histogram
-    const values = data.map(d => d[`Quarterly Total_${quarter}`]);
+    const values = data.map(d => d[`Quarterly Total_${quarter}`]).filter(v => !isNaN(v));
     const x2 = d3.scaleLinear().domain([0, d3.max(values)]).range([0, width]);
     const bins = d3.bin().domain(x2.domain()).thresholds(20)(values);
     const y2 = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).range([height, 0]);
@@ -59,13 +59,19 @@
       .attr("width", d => x2(d.x1) - x2(d.x0) - 1).attr("height", d => height - y2(d.length))
       .attr("fill", "#66c2a5");
 
-    // Chart 3: Scatter Dep vs Ind
-    const x3 = d3.scaleLinear().domain([0, d3.max(data, d => d[`Dependent_${quarter}`])]).range([0, width]);
-    const y3 = d3.scaleLinear().domain([0, d3.max(data, d => d[`Independent_${quarter}`])]).range([height, 0]);
+    // Chart 3: Scatter Dep vs Ind (NaN-safe)
+    const scatterData = data.filter(d =>
+      d[`Dependent_${quarter}`] != null &&
+      d[`Independent_${quarter}`] != null &&
+      !isNaN(d[`Dependent_${quarter}`]) &&
+      !isNaN(d[`Independent_${quarter}`])
+    );
+    const x3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[`Dependent_${quarter}`])]).range([0, width]);
+    const y3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[`Independent_${quarter}`])]).range([height, 0]);
     g3.append("g").call(d3.axisLeft(y3));
     g3.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x3));
     g3.selectAll("circle")
-      .data(data).enter().append("circle")
+      .data(scatterData).enter().append("circle")
       .attr("cx", d => x3(d[`Dependent_${quarter}`])).attr("cy", d => y3(d[`Independent_${quarter}`]))
       .attr("r", 3).attr("fill", "#ff7f00");
 
