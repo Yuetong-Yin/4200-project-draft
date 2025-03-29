@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>FAFSA Trends Visualization Project</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>FAFSA Visualizations</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Exploring FAFSA Application Trends (2023–2024)</h1>
+    <h1>FAFSA Data Visualizations</h1>
     <nav>
       <a href="index.html">Home</a>
       <a href="data_information.html">Data</a>
@@ -17,31 +17,56 @@
   </header>
 
   <main>
-    <section>
-      <h2>Project Overview</h2>
-      <p>This project explores the Free Application for Federal Student Aid (FAFSA) application trends across five quarters during the 2023–2024 academic year. Our goal is to uncover institutional and regional patterns that can inform education policy and outreach strategies. Tasks involved data cleaning, exploratory data analysis, visualization (with both D3.js and Altair), and web-based storytelling. We implemented five logically connected visualizations with interactions and comparisons from national trends to institutional breakdowns.</p>
+    <section id="quarterTabs">
+      <h2>Select Quarter</h2>
+      <div>
+        <button class="tab-button active" data-quarter="Q1">Q1</button>
+        <button class="tab-button" data-quarter="Q2">Q2</button>
+        <button class="tab-button" data-quarter="Q3">Q3</button>
+        <button class="tab-button" data-quarter="Q4">Q4</button>
+        <button class="tab-button" data-quarter="Q5">Q5</button>
+      </div>
     </section>
 
-    <section>
-      <h2>Data Description</h2>
-      <p>The dataset (<code>cleaned.csv</code>) contains <strong>6108 U.S. institutions</strong>, collected from the <a href="https://studentaid.gov/data-center" target="_blank">Federal Student Aid Data Center</a>. Key columns include:</p>
-      <ul>
-        <li><strong>School Information:</strong> Name, State, Zip Code, Type</li>
-        <li><strong>FAFSA Applications:</strong> Dependent and Independent counts for Q1–Q5</li>
-        <li><strong>Quarterly Totals</strong> per school and state</li>
-      </ul>
-    </section>
+    <div class="viz-container">
+      <h3>Chart 1: Bar Chart – Total FAFSA by State</h3>
+      <div id="viz1"></div>
+      <p><strong>Takeaway:</strong> This chart shows an overview of state-level FAFSA applications, highlighting top-performing regions.</p>
+    </div>
 
-    <section>
-      <h2>References</h2>
-      <ul>
-        <li><a href="https://doi.org/10.1093/qje/qjs017" target="_blank">Bettinger et al. (2012) - The Role of Application Assistance in College Decisions</a></li>
-        <li><a href="https://doi.org/10.17310/ntj.2006.2.07" target="_blank">Dynarski & Scott-Clayton (2006) - The Cost of Complexity in Student Aid</a></li>
-      </ul>
-    </section>
+    <div class="viz-container">
+      <h3>Chart 2: Histogram – Distribution of FAFSA Totals</h3>
+      <div id="viz2"></div>
+      <p><strong>Takeaway:</strong> Displays how FAFSA totals are distributed among schools, revealing skew or spread in applicant volume.</p>
+    </div>
+
+    <div class="viz-container">
+      <h3>Chart 3: Scatter Plot – Dependent vs. Independent Applicants</h3>
+      <div id="viz3"></div>
+      <p><strong>Takeaway:</strong> Compares each institution's dependent and independent counts, revealing clusters or imbalances.</p>
+    </div>
+
+    <div class="viz-container">
+      <h3>Chart 4: Scatter Plot – School Type vs. Total Applications</h3>
+      <div id="viz4"></div>
+      <p><strong>Takeaway:</strong> Highlights total FAFSA volume in relation to school type, showing which types receive more applications.</p>
+    </div>
+
+    <div class="viz-container">
+      <h3>Chart 5: Altair Chart – School Type Trends</h3>
+      <iframe src="altair_chart.html" width="700" height="500" style="border:none;"></iframe>
+      <p><strong>Takeaway:</strong> This Altair chart shows how FAFSA submissions fluctuate across quarters for each school type (public, private, for-profit).</p>
+    </div>
+
+    <div class="viz-container">
+      <h3>Chart 6: Interactive Map – FAFSA Totals by State</h3>
+      <div id="viz6"></div>
+      <p><strong>Takeaway:</strong> This choropleth map displays FAFSA totals by U.S. state for the selected quarter. Hover to compare states interactively.</p>
+    </div>
   </main>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
   <script src="visualization.js"></script>
 </body>
 </html>
