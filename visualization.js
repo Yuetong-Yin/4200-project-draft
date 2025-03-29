@@ -1,128 +1,148 @@
-// visualization.js
-
-(async function () {
-  const data = await d3.csv("cleaned.csv", d3.autoType);
-  console.log("Data loaded", data);
-
-  const quarters = ["Q1", "Q2", "Q3", "Q4", "Q5"];
   let currentQuarter = "Q1";
+  let globalData = [];
 
-  const margin = { top: 20, right: 20, bottom: 60, left: 60 };
-  const width = 800 - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
+  document.addEventListener("DOMContentLoaded", function () {
+    d3.csv("cleaned.csv").then(data => {
+      globalData = data;
+      init();
+      updateCharts(currentQuarter);
+    });
 
-  function updateCharts(quarter) {
-    currentQuarter = quarter;
-    document.querySelectorAll("svg").forEach(el => el.remove());
-
-    console.log("Rendering charts for quarter:", quarter);
-
-    // Chart 1: Bar Chart – Total FAFSA by State
-    const stateTotals = d3.rollup(
-      data,
-      v => d3.sum(v, d => d[`Quarterly Total_${quarter}`]),
-      d => d.State
-    );
-
-    const barData = Array.from(stateTotals, ([state, total]) => ({ state, total }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 20);
-
-    const svg1 = d3.select("#viz1").append("svg").attr("width", 800).attr("height", 400);
-    const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const x1 = d3.scaleBand().domain(barData.map(d => d.state)).range([0, width]).padding(0.1);
-    const y1 = d3.scaleLinear().domain([0, d3.max(barData, d => d.total)]).range([height, 0]);
-
-    g1.append("g").call(d3.axisLeft(y1));
-    g1.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x1)).selectAll("text")
-      .attr("transform", "rotate(-45)")
-      .style("text-anchor", "end");
-
-    g1.selectAll("rect")
-      .data(barData)
-      .enter()
-      .append("rect")
-      .attr("x", d => x1(d.state))
-      .attr("y", d => y1(d.total))
-      .attr("width", x1.bandwidth())
-      .attr("height", d => height - y1(d.total))
-      .attr("fill", "steelblue");
-
-    // Chart 2: Histogram – Distribution of FAFSA Totals
-    const svg2 = d3.select("#viz2").append("svg").attr("width", 800).attr("height", 400);
-    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const values = data.map(d => d[`Quarterly Total_${quarter}`]);
-    const x2 = d3.scaleLinear().domain([0, d3.max(values)]).range([0, width]);
-    const bins = d3.bin().domain(x2.domain()).thresholds(20)(values);
-    const y2 = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).range([height, 0]);
-
-    g2.append("g").call(d3.axisLeft(y2));
-    g2.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x2));
-
-    g2.selectAll("rect")
-      .data(bins)
-      .enter()
-      .append("rect")
-      .attr("x", d => x2(d.x0))
-      .attr("y", d => y2(d.length))
-      .attr("width", d => x2(d.x1) - x2(d.x0) - 1)
-      .attr("height", d => height - y2(d.length))
-      .attr("fill", "#66c2a5");
-
-    // Chart 3: Scatter Plot – Dependent vs. Independent Applicants
-    const svg3 = d3.select("#viz3").append("svg").attr("width", 800).attr("height", 400);
-    const g3 = svg3.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const depKey = `Dependent_${quarter}`;
-    const indKey = `Independent_${quarter}`;
-
-    const scatterData = data.filter(d => d[depKey] != null && d[indKey] != null);
-    const x3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[depKey])]).range([0, width]);
-    const y3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[indKey])]).range([height, 0]);
-
-    g3.append("g").call(d3.axisLeft(y3));
-    g3.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x3));
-
-    g3.selectAll("circle")
-      .data(scatterData)
-      .enter()
-      .append("circle")
-      .attr("cx", d => x3(d[depKey]))
-      .attr("cy", d => y3(d[indKey]))
-      .attr("r", 3)
-      .attr("fill", "#ff7f00");
-
-    // Chart 4: Scatter Plot – School Type vs. Total Applications
-    const svg4 = d3.select("#viz4").append("svg").attr("width", 800).attr("height", 400);
-    const g4 = svg4.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const types = Array.from(new Set(data.map(d => d["School Type"])));
-    const x4 = d3.scalePoint().domain(types).range([0, width]).padding(0.5);
-    const y4 = d3.scaleLinear().domain([0, d3.max(data, d => d[`Quarterly Total_${quarter}`])]).range([height, 0]);
-
-    g4.append("g").call(d3.axisLeft(y4));
-    g4.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x4));
-
-    g4.selectAll("circle")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("cx", d => x4(d["School Type"]))
-      .attr("cy", d => y4(d[`Quarterly Total_${quarter}`]))
-      .attr("r", 3)
-      .attr("fill", "#984ea3");
-  }
-
-  // Quarter toggle buttons
-  d3.selectAll(".tab-button").on("click", function () {
-    d3.selectAll(".tab-button").classed("active", false);
-    d3.select(this).classed("active", true);
-    const quarter = d3.select(this).attr("data-quarter");
-    updateCharts(quarter);
+    document.querySelectorAll(".tab-button").forEach(button => {
+      button.addEventListener("click", function () {
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        currentQuarter = this.getAttribute("data-quarter");
+        updateCharts(currentQuarter);
+      });
+    });
   });
 
-  // Initial render
-  updateCharts(currentQuarter);
-})();
+  function init() {}
+
+  function updateCharts(quarter) {
+    drawBarChart(quarter);
+    drawScatterPlot(quarter);
+    drawMapPlotly(quarter);
+    embedAltairScatter(quarter);
+    embedAltairHistogram(quarter);
+  }
+
+  function drawBarChart(quarter) {
+    const col = "Quarterly Total_" + quarter;
+    const data = globalData
+      .filter(d => d[col])
+      .sort((a, b) => +b[col] - +a[col])
+      .slice(0, 10);
+
+    d3.select("#bar-chart").html("");
+    const svg = d3.select("#bar-chart").append("svg").attr("width", 800).attr("height", 400);
+
+    const x = d3.scaleBand().domain(data.map(d => d.School)).range([60, 750]).padding(0.3);
+    const y = d3.scaleLinear().domain([0, d3.max(data, d => +d[col])]).range([350, 50]);
+
+    svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x)).selectAll("text")
+      .attr("transform", "rotate(-40)").style("text-anchor", "end");
+    svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
+
+    svg.selectAll("rect")
+      .data(data)
+      .join("rect")
+      .attr("x", d => x(d.School))
+      .attr("y", d => y(+d[col]))
+      .attr("width", x.bandwidth())
+      .attr("height", d => 350 - y(+d[col]))
+      .attr("fill", "#69b3a2");
+  }
+
+  function drawScatterPlot(quarter) {
+    const depCol = "Dependent Students_" + quarter;
+    const indCol = "Independent Students_" + quarter;
+    const data = globalData.filter(d => d[depCol] && d[indCol]);
+
+    d3.select("#scatter-plot").html("");
+    const svg = d3.select("#scatter-plot").append("svg").attr("width", 800).attr("height", 400);
+
+    const x = d3.scaleLinear().domain([0, d3.max(data, d => +d[depCol])]).range([60, 750]);
+    const y = d3.scaleLinear().domain([0, d3.max(data, d => +d[indCol])]).range([350, 50]);
+
+    svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
+    svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
+
+    svg.selectAll("circle")
+      .data(data)
+      .join("circle")
+      .attr("cx", d => x(+d[depCol]))
+      .attr("cy", d => y(+d[indCol]))
+      .attr("r", 4)
+      .attr("fill", "#1f77b4");
+  }
+
+  function drawMapPlotly(quarter) {
+    const col = "Quarterly Total_" + quarter;
+
+    const stateData = {};
+    globalData.forEach(d => {
+      const state = d.State;
+      if (!stateData[state]) stateData[state] = 0;
+      stateData[state] += +d[col] || 0;
+    });
+
+    const states = Object.keys(stateData);
+    const values = states.map(s => stateData[s]);
+
+    const data = [{
+      type: 'choropleth',
+      locationmode: 'USA-states',
+      locations: states,
+      z: values,
+      colorscale: 'Blues',
+      colorbar: {
+        title: `${quarter} Total`,
+      },
+    }];
+
+    const layout = {
+      geo: {
+        scope: 'usa',
+      },
+      margin: { t: 0, b: 0 },
+    };
+
+    Plotly.newPlot('map', data, layout);
+  }
+
+  function embedAltairScatter(quarter) {
+    const chart = {
+      $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+      description: "Altair Scatter Plot",
+      data: { url: "cleaned.csv" },
+      transform: [{ filter: `datum.State == 'CA'` }],
+      mark: "point",
+      encoding: {
+        x: { field: `Dependent Students_${quarter}`, type: "quantitative" },
+        y: { field: `Independent Students_${quarter}`, type: "quantitative" },
+        tooltip: [{ field: "School", type: "nominal" }]
+      }
+    };
+    vegaEmbed("#altair-scatter", chart, { actions: false });
+  }
+
+  function embedAltairHistogram(quarter) {
+    const chart = {
+      $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+      description: "Altair Histogram",
+      data: { url: "cleaned.csv" },
+      mark: "bar",
+      encoding: {
+        x: {
+          field: `Quarterly Total_${quarter}`,
+          bin: true,
+          type: "quantitative",
+          title: `FAFSA Total Applications (${quarter})`
+        },
+        y: { aggregate: "count", type: "quantitative" }
+      }
+    };
+    vegaEmbed("#altair-histogram", chart, { actions: false });
+  }
