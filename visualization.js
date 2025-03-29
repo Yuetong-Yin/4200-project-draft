@@ -6,135 +6,76 @@ const tooltip = d3.select("body")
   .attr("class", "tooltip")
   .style("opacity", 0);
 
-// ------------------ 1. BAR PLOT: Total FAFSA by State (Overview) ------------------ //
-function createBarChart(data, quarter) {
-  const svg = d3.select("#viz1").html("").append("svg")
-    .attr("width", 800).attr("height", 500);
+// Your existing chart functions: createBarChart, createHistogram, etc. here...
+// (Already implemented above)
 
-  const states = Array.from(new Set(data.map(d => d.State)));
+// ------------------ 6. CHOROPLETH MAP: FAFSA by State ------------------ //
+function createChoroplethMap(data, quarter) {
+  d3.select("#viz6").html("");
 
-  const totals = d3.rollup(data,
+  const width = 800;
+  const height = 500;
+
+  const svg = d3.select("#viz6")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const projection = d3.geoAlbersUsa().translate([width / 2, height / 2]).scale(1000);
+  const path = d3.geoPath().projection(projection);
+
+  const totals = d3.rollup(
+    data,
     v => d3.sum(v, d => +d[`Quarterly Total_${quarter}`]),
     d => d.State
   );
 
-  const stateData = Array.from(totals, ([State, Total]) => ({ State, Total }))
-    .sort((a, b) => d3.descending(a.Total, b.Total)).slice(0, 20);
+  const color = d3.scaleQuantize()
+    .domain([0, d3.max(Array.from(totals.values()))])
+    .range(d3.schemeBlues[7]);
 
-  const x = d3.scaleBand().domain(stateData.map(d => d.State)).range([50, 750]).padding(0.2);
-  const y = d3.scaleLinear().domain([0, d3.max(stateData, d => d.Total)]).range([450, 50]);
+  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
+    const states = topojson.feature(us, us.objects.states).features;
 
-  svg.selectAll("rect")
-    .data(stateData)
-    .enter()
-    .append("rect")
-    .attr("x", d => x(d.State))
-    .attr("y", d => y(d.Total))
-    .attr("width", x.bandwidth())
-    .attr("height", d => 450 - y(d.Total))
-    .attr("fill", "#007acc")
-    .on("mouseover", (event, d) => {
-      tooltip.style("opacity", 1).html(`<strong>${d.State}</strong>: ${d.Total.toLocaleString()}`);
-    })
-    .on("mousemove", (event) => {
-      tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", () => tooltip.style("opacity", 0));
-
-  svg.append("g").attr("transform", "translate(0,450)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
+    svg.selectAll("path")
+      .data(states)
+      .join("path")
+      .attr("d", path)
+      .attr("fill", d => {
+        const stateName = nameFromId(d.id);
+        const val = totals.get(stateName);
+        return val ? color(val) : "#ddd";
+      })
+      .attr("stroke", "#fff")
+      .on("mouseover", (event, d) => {
+        const stateName = nameFromId(d.id);
+        const val = totals.get(stateName) || 0;
+        tooltip.transition().duration(200).style("opacity", 0.9);
+        tooltip.html(`<strong>${stateName}</strong><br>${val.toLocaleString()} FAFSA apps`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", () => tooltip.transition().duration(300).style("opacity", 0));
+  });
 }
 
-// ------------------ 2. HISTOGRAM: Total FAFSA Apps Distribution ------------------ //
-function createHistogram(data, quarter) {
-  const svg = d3.select("#viz2").html("").append("svg")
-    .attr("width", 800).attr("height", 400);
-
-  const totals = data.map(d => +d[`Quarterly Total_${quarter}`]);
-  const x = d3.scaleLinear().domain(d3.extent(totals)).nice().range([60, 740]);
-  const bins = d3.histogram().domain(x.domain()).thresholds(x.ticks(30))(totals);
-  const y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).nice().range([350, 40]);
-
-  svg.selectAll("rect")
-    .data(bins)
-    .enter().append("rect")
-    .attr("x", d => x(d.x0))
-    .attr("y", d => y(d.length))
-    .attr("width", d => x(d.x1) - x(d.x0) - 1)
-    .attr("height", d => 350 - y(d.length))
-    .attr("fill", "#00b4d8")
-    .on("mouseover", (event, d) => {
-      tooltip.style("opacity", 1).html(`${d.length} schools<br>(${Math.round(d.x0)} – ${Math.round(d.x1)})`);
-    })
-    .on("mousemove", (event) => {
-      tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", () => tooltip.style("opacity", 0));
-
-  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
+// Helper to map US state ID to state name
+function nameFromId(id) {
+  const statesMap = {
+    1: "Alabama", 2: "Alaska", 4: "Arizona", 5: "Arkansas", 6: "California", 8: "Colorado",
+    9: "Connecticut", 10: "Delaware", 11: "District of Columbia", 12: "Florida", 13: "Georgia",
+    15: "Hawaii", 16: "Idaho", 17: "Illinois", 18: "Indiana", 19: "Iowa", 20: "Kansas", 21: "Kentucky",
+    22: "Louisiana", 23: "Maine", 24: "Maryland", 25: "Massachusetts", 26: "Michigan", 27: "Minnesota",
+    28: "Mississippi", 29: "Missouri", 30: "Montana", 31: "Nebraska", 32: "Nevada", 33: "New Hampshire",
+    34: "New Jersey", 35: "New Mexico", 36: "New York", 37: "North Carolina", 38: "North Dakota",
+    39: "Ohio", 40: "Oklahoma", 41: "Oregon", 42: "Pennsylvania", 44: "Rhode Island", 45: "South Carolina",
+    46: "South Dakota", 47: "Tennessee", 48: "Texas", 49: "Utah", 50: "Vermont", 51: "Virginia",
+    53: "Washington", 54: "West Virginia", 55: "Wisconsin", 56: "Wyoming"
+  };
+  return statesMap[id];
 }
 
-// ------------------ 3. SCATTER PLOT: Dependent vs. Independent ------------------ //
-function createScatterPlot(data, quarter) {
-  const svg = d3.select("#viz3").html("").append("svg")
-    .attr("width", 800).attr("height", 450);
-
-  const x = d3.scaleLinear().domain([0, d3.max(data, d => +d[`Dependent Students_${quarter}`])]).nice().range([50, 740]);
-  const y = d3.scaleLinear().domain([0, d3.max(data, d => +d[`Independent Students_${quarter}`])]).nice().range([400, 40]);
-
-  svg.selectAll("circle")
-    .data(data)
-    .enter().append("circle")
-    .attr("cx", d => x(+d[`Dependent Students_${quarter}`]))
-    .attr("cy", d => y(+d[`Independent Students_${quarter}`]))
-    .attr("r", 3)
-    .attr("fill", "#007acc")
-    .on("mouseover", (event, d) => {
-      tooltip.style("opacity", 1).html(`<strong>${d.School}</strong><br>Dep: ${d[`Dependent Students_${quarter}`]}<br>Ind: ${d[`Independent Students_${quarter}`]}`);
-    })
-    .on("mousemove", (event) => {
-      tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", () => tooltip.style("opacity", 0));
-
-  svg.append("g").attr("transform", "translate(0,400)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
-}
-
-// ------------------ 4. SCATTER PLOT 2: FAFSA by School Type ------------------ //
-function createScatterByType(data, quarter) {
-  const svg = d3.select("#viz4").html("").append("svg")
-    .attr("width", 800).attr("height", 450);
-
-  const typeMap = { Public: "#007acc", Private: "#f77f00", "For-profit": "#d62828" };
-
-  const x = d3.scaleLinear().domain([0, d3.max(data, d => +d[`Quarterly Total_${quarter}`])]).nice().range([50, 740]);
-  const y = d3.scalePoint().domain([...new Set(data.map(d => d["School Type"]))]).range([400, 50]);
-
-  svg.selectAll("circle")
-    .data(data)
-    .enter().append("circle")
-    .attr("cx", d => x(+d[`Quarterly Total_${quarter}`]))
-    .attr("cy", d => y(d["School Type"]))
-    .attr("r", 4)
-    .attr("fill", d => typeMap[d["School Type"]] || "gray")
-    .on("mouseover", (event, d) => {
-      tooltip.style("opacity", 1).html(`<strong>${d.School}</strong><br>${d["School Type"]}: ${d[`Quarterly Total_${quarter}`]}`);
-    })
-    .on("mousemove", (event) => {
-      tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", () => tooltip.style("opacity", 0));
-
-  svg.append("g").attr("transform", "translate(0,400)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
-}
-
-// ------------------ 5. MAP: FAFSA Totals by State ------------------ //
-// You already had a map implementation earlier. Insert your full map function here.
-
-// ------------------ QUARTER TAB CONTROL ------------------ //
+// ------------------ QUARTER SWITCH + INITIAL LOAD ------------------ //
 d3.selectAll(".tab-button").on("click", function () {
   const quarter = d3.select(this).attr("data-quarter");
   d3.selectAll(".tab-button").classed("active", false);
@@ -145,15 +86,16 @@ d3.selectAll(".tab-button").on("click", function () {
     createHistogram(data, quarter);
     createScatterPlot(data, quarter);
     createScatterByType(data, quarter);
-    // Add your updateMap(data, quarter) function here if needed
+    createChoroplethMap(data, quarter);
   });
 });
 
-// ------------------ INITIAL LOAD ------------------ //
+// Initial load
+const defaultQuarter = "Q1";
 d3.csv("cleaned.csv").then(data => {
-  createBarChart(data, "Q1");
-  createHistogram(data, "Q1");
-  createScatterPlot(data, "Q1");
-  createScatterByType(data, "Q1");
-  // Add createMap or updateMap if you have one
+  createBarChart(data, defaultQuarter);
+  createHistogram(data, defaultQuarter);
+  createScatterPlot(data, defaultQuarter);
+  createScatterByType(data, defaultQuarter);
+  createChoroplethMap(data, defaultQuarter);
 });
