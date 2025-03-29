@@ -1,202 +1,128 @@
-// Revised visualization.js with proper chart rendering and error handling
+// visualization.js
 
-// Load the data once and initialize charts
 (async function () {
-  const data = await d3.csv("cleaned.csv");
+  const data = await d3.csv("cleaned.csv", d3.autoType);
+  console.log("Data loaded", data);
 
-  // Convert numeric fields
   const quarters = ["Q1", "Q2", "Q3", "Q4", "Q5"];
-  quarters.forEach((q, i) => {
-    data.forEach(d => {
-      d[`Quarterly Total_Q${i + 1}`] = +d[`Quarterly Total_Q${i + 1}`];
-      d[`Dependent_Q${i + 1}`] = +d[`Dependent_Q${i + 1}`];
-      d[`Independent_Q${i + 1}`] = +d[`Independent_Q${i + 1}`];
-    });
-  });
-
-  // Initial quarter
   let currentQuarter = "Q1";
-  renderAllCharts(currentQuarter);
 
-  // Add button interactions
-  d3.selectAll(".tab-button").on("click", function () {
-    d3.selectAll(".tab-button").classed("active", false);
-    d3.select(this).classed("active", true);
-    currentQuarter = d3.select(this).attr("data-quarter");
-    renderAllCharts(currentQuarter);
-  });
+  const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+  const width = 800 - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
 
-  function renderAllCharts(quarter) {
+  function updateCharts(quarter) {
+    currentQuarter = quarter;
+    document.querySelectorAll("svg").forEach(el => el.remove());
+
     console.log("Rendering charts for quarter:", quarter);
 
-    renderBarChart(data, quarter);
-    renderHistogram(data, quarter);
-    renderScatterDepInd(data, quarter);
-    renderScatterSchoolType(data, quarter);
-    renderMap(data, quarter);
-  }
-
-  function renderBarChart(data, quarter) {
-    const stateData = d3.rollups(
+    // Chart 1: Bar Chart – Total FAFSA by State
+    const stateTotals = d3.rollup(
       data,
       v => d3.sum(v, d => d[`Quarterly Total_${quarter}`]),
       d => d.State
-    ).map(([state, total]) => ({ state, total }));
+    );
 
-    console.log("Bar chart data:", stateData);
-    const width = 600, height = 300;
-    const svg = d3.select("#viz1").html("").append("svg")
-      .attr("width", width)
-      .attr("height", height);
+    const barData = Array.from(stateTotals, ([state, total]) => ({ state, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 20);
 
-    const x = d3.scaleBand()
-      .domain(stateData.map(d => d.state))
-      .range([40, width])
-      .padding(0.2);
+    const svg1 = d3.select("#viz1").append("svg").attr("width", 800).attr("height", 400);
+    const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(stateData, d => d.total)])
-      .range([height - 40, 20]);
+    const x1 = d3.scaleBand().domain(barData.map(d => d.state)).range([0, width]).padding(0.1);
+    const y1 = d3.scaleLinear().domain([0, d3.max(barData, d => d.total)]).range([height, 0]);
 
-    svg.append("g")
-      .attr("transform", `translate(0,${height - 40})`)
-      .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
-      .selectAll("text")
+    g1.append("g").call(d3.axisLeft(y1));
+    g1.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x1)).selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end");
 
-    svg.append("g")
-      .attr("transform", "translate(40,0)")
-      .call(d3.axisLeft(y));
-
-    svg.selectAll("rect")
-      .data(stateData)
+    g1.selectAll("rect")
+      .data(barData)
       .enter()
       .append("rect")
-      .attr("x", d => x(d.state))
-      .attr("y", d => y(d.total))
-      .attr("width", x.bandwidth())
-      .attr("height", d => height - 40 - y(d.total))
+      .attr("x", d => x1(d.state))
+      .attr("y", d => y1(d.total))
+      .attr("width", x1.bandwidth())
+      .attr("height", d => height - y1(d.total))
       .attr("fill", "steelblue");
-  }
 
-  function renderHistogram(data, quarter) {
-    const totals = data.map(d => d[`Quarterly Total_${quarter}`]);
-    console.log("Histogram data:", totals);
-    const bins = d3.bin().thresholds(20)(totals);
-    const width = 600, height = 300;
-    const svg = d3.select("#viz2").html("").append("svg")
-      .attr("width", width)
-      .attr("height", height);
+    // Chart 2: Histogram – Distribution of FAFSA Totals
+    const svg2 = d3.select("#viz2").append("svg").attr("width", 800).attr("height", 400);
+    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const x = d3.scaleLinear()
-      .domain([0, d3.max(totals)])
-      .range([40, width]);
+    const values = data.map(d => d[`Quarterly Total_${quarter}`]);
+    const x2 = d3.scaleLinear().domain([0, d3.max(values)]).range([0, width]);
+    const bins = d3.bin().domain(x2.domain()).thresholds(20)(values);
+    const y2 = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).range([height, 0]);
 
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(bins, d => d.length)])
-      .range([height - 40, 20]);
+    g2.append("g").call(d3.axisLeft(y2));
+    g2.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x2));
 
-    svg.append("g")
-      .attr("transform", `translate(0,${height - 40})`)
-      .call(d3.axisBottom(x));
-
-    svg.append("g")
-      .attr("transform", "translate(40,0)")
-      .call(d3.axisLeft(y));
-
-    svg.selectAll("rect")
+    g2.selectAll("rect")
       .data(bins)
-      .enter().append("rect")
-      .attr("x", d => x(d.x0))
-      .attr("y", d => y(d.length))
-      .attr("width", d => x(d.x1) - x(d.x0) - 1)
-      .attr("height", d => height - 40 - y(d.length))
-      .attr("fill", "darkorange");
-  }
+      .enter()
+      .append("rect")
+      .attr("x", d => x2(d.x0))
+      .attr("y", d => y2(d.length))
+      .attr("width", d => x2(d.x1) - x2(d.x0) - 1)
+      .attr("height", d => height - y2(d.length))
+      .attr("fill", "#66c2a5");
 
-  function renderScatterDepInd(data, quarter) {
-    const filtered = data.map(d => ({
-      dep: d[`Dependent_${quarter}`],
-      ind: d[`Independent_${quarter}`]
-    })).filter(d => !isNaN(d.dep) && !isNaN(d.ind));
+    // Chart 3: Scatter Plot – Dependent vs. Independent Applicants
+    const svg3 = d3.select("#viz3").append("svg").attr("width", 800).attr("height", 400);
+    const g3 = svg3.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    console.log("Scatter Plot (Dep vs Ind) data:", filtered);
+    const depKey = `Dependent_${quarter}`;
+    const indKey = `Independent_${quarter}`;
 
-    const width = 600, height = 300;
-    const svg = d3.select("#viz3").html("").append("svg")
-      .attr("width", width)
-      .attr("height", height);
+    const scatterData = data.filter(d => d[depKey] != null && d[indKey] != null);
+    const x3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[depKey])]).range([0, width]);
+    const y3 = d3.scaleLinear().domain([0, d3.max(scatterData, d => d[indKey])]).range([height, 0]);
 
-    const x = d3.scaleLinear()
-      .domain([0, d3.max(filtered, d => d.dep)])
-      .range([40, width]);
+    g3.append("g").call(d3.axisLeft(y3));
+    g3.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x3));
 
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(filtered, d => d.ind)])
-      .range([height - 40, 20]);
-
-    svg.append("g")
-      .attr("transform", `translate(0,${height - 40})`)
-      .call(d3.axisBottom(x));
-
-    svg.append("g")
-      .attr("transform", "translate(40,0)")
-      .call(d3.axisLeft(y));
-
-    svg.selectAll("circle")
-      .data(filtered)
+    g3.selectAll("circle")
+      .data(scatterData)
       .enter()
       .append("circle")
-      .attr("cx", d => x(d.dep))
-      .attr("cy", d => y(d.ind))
+      .attr("cx", d => x3(d[depKey]))
+      .attr("cy", d => y3(d[indKey]))
       .attr("r", 3)
-      .attr("fill", "orange");
-  }
+      .attr("fill", "#ff7f00");
 
-  function renderScatterSchoolType(data, quarter) {
-    const grouped = d3.groups(data, d => d["School Type"]);
-    const typeData = grouped.map(([type, entries]) => {
-      const total = d3.sum(entries, d => d[`Quarterly Total_${quarter}`]);
-      return { type, total };
-    });
+    // Chart 4: Scatter Plot – School Type vs. Total Applications
+    const svg4 = d3.select("#viz4").append("svg").attr("width", 800).attr("height", 400);
+    const g4 = svg4.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    console.log("Scatter Plot (School Type) data:", typeData);
-    const width = 600, height = 300;
-    const svg = d3.select("#viz4").html("").append("svg")
-      .attr("width", width)
-      .attr("height", height);
+    const types = Array.from(new Set(data.map(d => d["School Type"])));
+    const x4 = d3.scalePoint().domain(types).range([0, width]).padding(0.5);
+    const y4 = d3.scaleLinear().domain([0, d3.max(data, d => d[`Quarterly Total_${quarter}`])]).range([height, 0]);
 
-    const x = d3.scaleBand()
-      .domain(typeData.map(d => d.type))
-      .range([40, width])
-      .padding(0.2);
+    g4.append("g").call(d3.axisLeft(y4));
+    g4.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x4));
 
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(typeData, d => d.total)])
-      .range([height - 40, 20]);
-
-    svg.append("g")
-      .attr("transform", `translate(0,${height - 40})`)
-      .call(d3.axisBottom(x));
-
-    svg.append("g")
-      .attr("transform", "translate(40,0)")
-      .call(d3.axisLeft(y));
-
-    svg.selectAll("circle")
-      .data(typeData)
+    g4.selectAll("circle")
+      .data(data)
       .enter()
       .append("circle")
-      .attr("cx", d => x(d.type) + x.bandwidth() / 2)
-      .attr("cy", d => y(d.total))
-      .attr("r", 5)
-      .attr("fill", "green");
+      .attr("cx", d => x4(d["School Type"]))
+      .attr("cy", d => y4(d[`Quarterly Total_${quarter}`]))
+      .attr("r", 3)
+      .attr("fill", "#984ea3");
   }
 
-  function renderMap(data, quarter) {
-    console.log("Map for quarter:", quarter);
-    // If you're embedding a separate HTML map like explore_map.html, nothing is needed here
-    // Otherwise, implement D3/TopoJSON choropleth rendering in this block
-  }
+  // Quarter toggle buttons
+  d3.selectAll(".tab-button").on("click", function () {
+    d3.selectAll(".tab-button").classed("active", false);
+    d3.select(this).classed("active", true);
+    const quarter = d3.select(this).attr("data-quarter");
+    updateCharts(quarter);
+  });
+
+  // Initial render
+  updateCharts(currentQuarter);
 })();
