@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FAFSA Visualizations</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 </head>
 <body>
   <header>
@@ -29,45 +36,36 @@
     </section>
 
     <div class="viz-container">
-      <h3>Chart 1: Bar Chart – Total FAFSA by State</h3>
-      <div id="viz1"></div>
-      <p><strong>Takeaway:</strong> This chart shows an overview of state-level FAFSA applications, highlighting top-performing regions.</p>
+      <h3>Chart 1: Bar Chart – Total FAFSA by School</h3>
+      <div id="bar-chart"></div>
+      <p><strong>Takeaway:</strong> Top 10 institutions in FAFSA applications, updated by quarter.</p>
     </div>
 
     <div class="viz-container">
-      <h3>Chart 2: Histogram – Distribution of FAFSA Totals</h3>
-      <div id="viz2"></div>
-      <p><strong>Takeaway:</strong> Displays how FAFSA totals are distributed among schools, revealing skew or spread in applicant volume.</p>
+      <h3>Chart 2: Altair Histogram – Distribution of FAFSA Totals</h3>
+      <div id="altair-histogram"></div>
+      <p><strong>Takeaway:</strong> Histogram shows spread of FAFSA totals across institutions per quarter.</p>
     </div>
 
     <div class="viz-container">
       <h3>Chart 3: Scatter Plot – Dependent vs. Independent Applicants</h3>
-      <div id="viz3"></div>
-      <p><strong>Takeaway:</strong> Compares each institution's dependent and independent counts, revealing clusters or imbalances.</p>
+      <div id="scatter-plot"></div>
+      <p><strong>Takeaway:</strong> D3 scatter plot comparing dependent and independent FAFSA applicants per institution.</p>
     </div>
 
     <div class="viz-container">
-      <h3>Chart 4: Scatter Plot – School Type vs. Total Applications</h3>
-      <div id="viz4"></div>
-      <p><strong>Takeaway:</strong> Highlights total FAFSA volume in relation to school type, showing which types receive more applications.</p>
+      <h3>Chart 4: Altair Scatter – FAFSA by School Type</h3>
+      <div id="altair-scatter"></div>
+      <p><strong>Takeaway:</strong> Altair chart zoomed into California schools showing dependent vs independent FAFSA submissions.</p>
     </div>
 
     <div class="viz-container">
-      <h3>Chart 5: Altair Chart – School Type Trends</h3>
-      <iframe src="altair_school_type_chart.html" width="700" height="500" style="border:none;"></iframe>
-      <p><strong>Takeaway:</strong> This Altair chart shows how FAFSA submissions fluctuate across quarters for each school type (public, private, for-profit).</p>
+      <h3>Chart 5: Interactive Map – FAFSA Totals by State</h3>
+      <div id="map"></div>
+      <p><strong>Takeaway:</strong> Interactive choropleth map shows state-level FAFSA totals. Changes with selected quarter.</p>
     </div>
-
-    <div class="viz-container">
-      <h3>Chart 6: Interactive Map – FAFSA Totals by State</h3>
-      <iframe src="explore_map.html" width="100%" height="500" style="border:none;"></iframe>
-      <p><strong>Takeaway:</strong> This interactive map allows users to view FAFSA application totals by state across quarters. Toggle layers to explore Q1–Q5.</p>
-    </div>
-
   </main>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://unpkg.com/topojson-client@3"></script>
-  <script src="visualization.js"></script>
+  <script src="visualize.js"></script>
 </body>
 </html>
