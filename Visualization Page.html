@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualizations</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>FAFSA Visualizations</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="data_information.html">Data</a>
+      <a href="visualization.html">Visualizations</a>
+      <a href="conclusion.html">Conclusion</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Interactive Quarter Selection</h2>
+      <div id="quarterTabs">
+        <button class="tab-button active" data-quarter="Q1">Q1</button>
+        <button class="tab-button" data-quarter="Q2">Q2</button>
+        <button class="tab-button" data-quarter="Q3">Q3</button>
+        <button class="tab-button" data-quarter="Q4">Q4</button>
+        <button class="tab-button" data-quarter="Q5">Q5</button>
+      </div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 1: Top 10 Schools by FAFSA Applications (Bar Chart)</h3>
+      <p>This bar chart shows the top 10 schools with the most FAFSA applications in the selected quarter.</p>
+      <div id="viz1"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 2: Total Applications Over Time (Line Chart)</h3>
+      <p>This line chart illustrates the overall trend of FAFSA applications from Q1 to Q5.</p>
+      <div id="viz2"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 3: Dependent vs Independent Students (Scatter Plot)</h3>
+      <p>This scatter plot compares the number of dependent and independent student applications per school for the selected quarter.</p>
+      <div id="viz3"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 4: School Type Distribution (Pie/Donut Chart)</h3>
+      <p>This donut chart shows the distribution of FAFSA applications by school type (e.g., public vs private) in the selected quarter.</p>
+      <div id="viz4"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 5: Comparison of Student Types Over Time (Stacked Bar)</h3>
+      <p>This chart compares dependent and independent student applications across all quarters.</p>
+      <div id="viz5"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 6: State-Level Totals by Quarter (Interactive Map)</h3>
+      <p>Hover over a state to see FAFSA application totals for that region in the selected quarter.</p>
+      <div id="viz6"></div>
+    </section>
+
+    <section class="viz-container">
+      <h3>Chart 7: Trends by School Type (Multi-Line Chart)</h3>
+      <p>This line chart shows trends in FAFSA applications for different school types from Q1 to Q5.</p>
+      <div id="viz7"></div>
+    </section>
+  </main>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="visualization.js"></script>
+</body>
+</html>
