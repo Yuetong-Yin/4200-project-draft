@@ -1,64 +1,223 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FAFSA Application Trends Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-</head>
-<body>
-  <header>
-    <h1>FAFSA Visualizations</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="data_information.html">Data Information</a>
-      <a href="visualization.html">Visualizations</a>
-      <a href="conclusion.html">Conclusion</a>
-    </nav>
-  </header>
+let currentQuarter = "Q1";
+let globalData = [];
+let selectedState = "ALL";
 
-  <div class="container">
-    <h2>FAFSA Application Trends and Institutional Factors</h2>
-    <p>This dashboard explores FAFSA application patterns across U.S. institutions using D3 and Altair visualizations.</p>
+document.addEventListener("DOMContentLoaded", function () {
+  d3.csv("cleaned.csv").then(data => {
+    globalData = data;
+    populateStateDropdown();
+    init();
+    updateCharts(currentQuarter);
+  });
 
-    <div class="tabs">
-      <button class="tab-button active" data-quarter="Q1">Q1</button>
-      <button class="tab-button" data-quarter="Q2">Q2</button>
-      <button class="tab-button" data-quarter="Q3">Q3</button>
-      <button class="tab-button" data-quarter="Q4">Q4</button>
-      <button class="tab-button" data-quarter="Q5">Q5</button>
-    </div>
+  document.getElementById("cutoffRange").addEventListener("input", function () {
+    document.getElementById("cutoffValue").textContent = this.value;
+    embedAltairScatter(currentQuarter);
+  });
 
-    <h2>Top 10 Institutions by FAFSA Applications</h2>
-    <div id="bar-chart"></div>
+  document.getElementById("stateDropdown").addEventListener("change", function () {
+    selectedState = this.value;
+    drawScatterPlot(currentQuarter);
+  });
 
-    <h2>FAFSA Applications by State (Map)</h2>
-    <div id="map"></div>
+  document.querySelectorAll(".tab-button").forEach(button => {
+    button.addEventListener("click", function () {
+      document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      currentQuarter = this.getAttribute("data-quarter");
+      updateCharts(currentQuarter);
+    });
+  });
+});
 
-    <h2>Dependent vs. Independent Applicants</h2>
-    <div id="scatter-plot"></div>
-    <div class="controls">
-      <label for="stateDropdown">Select State:</label>
-      <select id="stateDropdown"></select>
-    </div>
+function populateStateDropdown() {
+  const stateDropdown = document.getElementById("stateDropdown");
+  const uniqueStates = Array.from(new Set(globalData.map(d => d.State.trim()).filter(d => d !== "")));
 
-    <h2>Institutional Applicants by State (Altair Scatter)</h2>
-    <div id="altair-scatter"></div>
-    <div class="controls">
-      <label for="cutoffRange">Cutoff:</label>
-      <input type="range" id="cutoffRange" min="0" max="1000" step="10" value="500">
-      <span id="cutoffValue">500</span>
-    </div>
+  // Clear existing options
+  stateDropdown.innerHTML = "";
 
-    <h2>Distribution of FAFSA Applications (Altair Histogram)</h2>
-    <div id="altair-histogram"></div>
-  </div>
+  // Add 'ALL' option
+  const allOption = document.createElement("option");
+  allOption.value = "ALL";
+  allOption.textContent = "ALL";
+  stateDropdown.appendChild(allOption);
 
-  <script src="visualize.js"></script>
-</body>
-</html>
+  // Add state options
+  uniqueStates.sort().forEach(state => {
+    const option = document.createElement("option");
+    option.value = state;
+    option.textContent = state;
+    stateDropdown.appendChild(option);
+  });
+}
+
+
+function init() {}
+
+function updateCharts(quarter) {
+  drawBarChart(quarter);
+  drawMapPlotly(quarter);
+  drawScatterPlot(quarter);
+  embedAltairScatter(quarter);
+  embedAltairHistogram(quarter);
+}
+
+function drawBarChart(quarter) {
+  const col = "Quarterly Total_" + quarter;
+  const data = globalData
+    .filter(d => d[col] && !isNaN(parseInt(d[col].replace(/,/g, ''))))
+    .sort((a, b) => parseInt(b[col].replace(/,/g, '')) - parseInt(a[col].replace(/,/g, '')))
+    .slice(0, 10);
+
+  d3.select("#bar-chart").html("");
+  const svg = d3.select("#bar-chart").append("svg").attr("width", 800).attr("height", 400);
+
+  const x = d3.scaleBand().domain(data.map(d => d.School)).range([60, 750]).padding(0.3);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => parseInt(d[col].replace(/,/g, '')))])
+    .range([350, 50]);
+
+  svg.append("g")
+    .attr("transform", "translate(0,350)")
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "rotate(-40)")
+    .style("text-anchor", "end");
+
+  svg.append("g")
+    .attr("transform", "translate(60,0)")
+    .call(d3.axisLeft(y));
+
+  const tooltip = d3.select("#bar-chart").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  svg.selectAll("rect")
+    .data(data)
+    .join("rect")
+    .attr("x", d => x(d.School))
+    .attr("y", d => y(parseInt(d[col].replace(/,/g, ''))))
+    .attr("width", x.bandwidth())
+    .attr("height", d => 350 - y(parseInt(d[col].replace(/,/g, ''))))
+    .attr("fill", "#69b3a2")
+    .on("mouseover", function (event, d) {
+      d3.select(this).attr("fill", "#4287f5");
+      tooltip.transition().duration(200).style("opacity", 1);
+      tooltip.html(`${d.School}: ${d[col]}`)
+        .style("left", (event.pageX - 80) + "px")
+        .style("top", (event.pageY - 50) + "px");
+    })
+    .on("mouseout", function () {
+      d3.select(this).attr("fill", "#69b3a2");
+      tooltip.transition().duration(200).style("opacity", 0);
+    });
+}
+
+function drawMapPlotly(quarter) {
+  const col = "Quarterly Total_" + quarter;
+  const stateData = {};
+  globalData.forEach(d => {
+    const val = parseInt(d[col]?.replace(/,/g, ''));
+    if (!isNaN(val)) {
+      stateData[d.State] = (stateData[d.State] || 0) + val;
+    }
+  });
+
+  const states = Object.keys(stateData);
+  const values = states.map(s => stateData[s]);
+
+  const data = [{
+    type: 'choropleth',
+    locationmode: 'USA-states',
+    locations: states,
+    z: values,
+    colorscale: 'Blues',
+    colorbar: {
+      title: `${quarter} Total`,
+    },
+  }];
+
+  const layout = {
+    geo: {
+      scope: 'usa',
+    },
+    margin: { t: 0, b: 0 },
+  };
+
+  Plotly.newPlot('map', data, layout);
+}
+
+function drawScatterPlot(quarter) {
+  const depCol = `Dependent Students_${quarter}`;
+  const indCol = `Independent Students_${quarter}`;
+
+  let data = globalData.filter(d => d[depCol] && d[indCol]);
+
+  if (selectedState !== "ALL") {
+    data = data.filter(d => d.State === selectedState);
+  }
+
+  d3.select("#scatter-plot").html("");
+  const svg = d3.select("#scatter-plot").append("svg").attr("width", 800).attr("height", 400);
+
+  const x = d3.scaleLinear()
+    .domain([0, d3.max(data, d => +d[depCol].replace(/,/g, ''))])
+    .range([60, 750]);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => +d[indCol].replace(/,/g, ''))])
+    .range([350, 50]);
+
+  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
+  svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
+
+  svg.selectAll("circle")
+    .data(data)
+    .join("circle")
+    .attr("cx", d => x(+d[depCol].replace(/,/g, '')))
+    .attr("cy", d => y(+d[indCol].replace(/,/g, '')))
+    .attr("r", 4)
+    .attr("fill", "#1f77b4");
+}
+
+function embedAltairScatter(quarter) {
+  const cutoff = +document.getElementById("cutoffRange").value;
+  const field = `Quarterly Total_${quarter}`;
+
+  const chart = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    description: "Altair Scatter Plot with Cutoff",
+    data: { url: "cleaned.csv" },
+    transform: [
+      { filter: `datum["${field}"] != null && toNumber(datum["${field}"]) >= ${cutoff}` }
+    ],
+    mark: "point",
+    encoding: {
+      x: { field: `Dependent Students_${quarter}`, type: "quantitative" },
+      y: { field: `Independent Students_${quarter}`, type: "quantitative" },
+      tooltip: [{ field: "School", type: "nominal" }]
+    }
+  };
+
+  vegaEmbed("#altair-scatter", chart, { actions: false });
+}
+
+function embedAltairHistogram(quarter) {
+  const chart = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    description: "Altair Histogram",
+    data: { url: "cleaned.csv" },
+    mark: "bar",
+    encoding: {
+      x: {
+        field: `Quarterly Total_${quarter}`,
+        bin: true,
+        type: "quantitative",
+        title: `FAFSA Total Applications (${quarter})`
+      },
+      y: { aggregate: "count", type: "quantitative" }
+    }
+  };
+  vegaEmbed("#altair-histogram", chart, { actions: false });
+}
