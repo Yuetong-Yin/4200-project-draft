@@ -36,9 +36,15 @@
 
     <h2>Top 10 Institutions by FAFSA Applications</h2>
     <div id="bar-chart"></div>
+    <p class="takeaway">
+      <strong>Takeaway:</strong> This bar chart displays the top 10 institutions with the highest FAFSA application totals for the selected quarter. Large public universities tend to dominate the list, suggesting their broad student reach and need-based aid volume. The visualization highlights how financial aid demand is concentrated at a small number of large institutions.
+    </p>
 
     <h2>FAFSA Applications by State (Map)</h2>
     <div id="map"></div>
+    <p class="takeaway">
+      <strong>Takeaway:</strong> The choropleth map shows FAFSA application totals by state. States with larger populations—such as California, Texas, and Florida—show higher totals, revealing both demographic trends and institutional volume. This visualization provides a regional overview of where FAFSA demand is concentrated.
+    </p>
 
     <h2>Dependent vs. Independent Applicants</h2>
     <div id="scatter-plot"></div>
@@ -46,6 +52,9 @@
       <label for="stateDropdown">Select State:</label>
       <select id="stateDropdown"></select>
     </div>
+    <p class="takeaway">
+      <strong>Takeaway:</strong> This scatter plot compares the number of dependent versus independent FAFSA applicants per institution. It provides insight into institutional demographics, distinguishing schools that serve younger, dependent students from those with older or nontraditional learners. Filtering by state enhances localized comparison.
+    </p>
 
     <h2>Institutional Applicants by State (Altair Scatter)</h2>
     <div id="altair-scatter"></div>
@@ -54,9 +63,15 @@
       <input type="range" id="cutoffRange" min="0" max="1000" step="10" value="500">
       <span id="cutoffValue">500</span>
     </div>
+    <p class="takeaway">
+      <strong>Takeaway:</strong> This Altair scatter plot dynamically filters institutions by state and FAFSA volume. It shows how dependent and independent applicants vary across schools, allowing users to explore institutional profiles in specific regions. The adjustable cutoff emphasizes institutions with significant application counts.
+    </p>
 
     <h2>Distribution of FAFSA Applications (Altair Histogram)</h2>
     <div id="altair-histogram"></div>
+    <p class="takeaway">
+      <strong>Takeaway:</strong> This histogram shows how FAFSA applications are distributed among institutions. Most schools receive relatively few applications, while a few serve thousands. The distribution illustrates the unequal scale of FAFSA demand and supports findings from the bar chart and scatter plots.
+    </p>
   </div>
 
   <script src="visualize.js"></script>
