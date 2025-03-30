@@ -83,7 +83,8 @@ function drawBarChart(quarter) {
     .call(d3.axisBottom(x))
     .selectAll("text")
     .attr("transform", "rotate(-40)")
-    .style("text-anchor", "end");
+    .style("text-anchor", "end")
+    .style("font-size", "11px");
 
   svg.append("g")
     .attr("transform", "translate(60,0)")
