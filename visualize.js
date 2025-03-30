@@ -73,12 +73,12 @@ function drawBarChart(quarter) {
     .range([370, 50]);
 
   svg.append("g")
-    .attr("transform", "translate(0,370)")
+    .attr("transform", "translate(0,600)")
     .call(d3.axisBottom(x))
     .selectAll("text")
-    .attr("transform", "rotate(-35)")
+    .attr("transform", "rotate(-45)")
     .style("text-anchor", "end")
-    .style("font-size", "12px");
+    .style("font-size", "10px");
 
   svg.append("g")
     .attr("transform", "translate(100,0)")
