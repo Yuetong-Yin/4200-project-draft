@@ -2,53 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FAFSA Application Trends Dashboard</title>
+  <title>Introduction</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>FAFSA Application Trends and Institutional Factors</h1>
-    <p>This dashboard explores FAFSA application patterns across U.S. institutions using D3 and Altair visualizations.</p>
+  <header>
+    <h1>Introduction</h1>
+    <nav>
+      <a href=" ">Home</a >
+      <a href="data_information.html">Data Information</a >
+      <a href="visualization.html">Visualizations</a >
+      <a href="conclusion.html">Conclusion</a >
+    </nav>
+  </header>
 
-    <div class="tabs">
-      <button class="tab-button active" data-quarter="Q1">Q1</button>
-      <button class="tab-button" data-quarter="Q2">Q2</button>
-      <button class="tab-button" data-quarter="Q3">Q3</button>
-      <button class="tab-button" data-quarter="Q4">Q4</button>
-      <button class="tab-button" data-quarter="Q5">Q5</button>
-    </div>
+  <main>
+    <h2>Introduction</h2>
+    <p>
+      This project explores our dataset (<em>cleaned.csv</em>) with multiple
+      charts. We can switch among quarters (Q1..Q5) for selected charts, and we
+      have an aggregated line chart and stacked bar chart for Q1..Q5.
+    </p >
+  
+  </main>
 
-    <h2>Top 10 Institutions by FAFSA Applications</h2>
-    <div id="bar-chart"></div>
-
-    <h2>FAFSA Applications by State (Map)</h2>
-    <div id="map"></div>
-
-    <h2>Dependent vs. Independent Applicants</h2>
-    <div id="scatter-plot"></div>
-    <div class="controls">
-      <label for="stateDropdown">Select State:</label>
-      <select id="stateDropdown"></select>
-    </div>
-
-    <h2>Institutional Applicants by State (Altair Scatter)</h2>
-    <div id="altair-scatter"></div>
-    <div class="controls">
-      <label for="cutoffRange">Cutoff:</label>
-      <input type="range" id="cutoffRange" min="0" max="2000" step="10" value="500">
-      <span id="cutoffValue">500</span>
-    </div>
-
-    <h2>Distribution of FAFSA Applications (Altair Histogram)</h2>
-    <div id="altair-histogram"></div>
-  </div>
-
+  <!-- Link JavaScript file -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
   <script src="visualize.js"></script>
 </body>
 </html>
