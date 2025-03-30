@@ -1,108 +1,50 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f9f9f9;
+  color: #333;
+}
 
- * {
-   margin: 0;
-   padding: 0;
-   box-sizing: border-box;
- }
- 
- body {
-   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-   background: #f0f4f8;
-   color: #333;
-   line-height: 1.6;
-   max-width: 1200px;
-   margin: 20px auto;
-   padding: 0 15px;
- }
- 
- header {
-   background: linear-gradient(135deg, #007acc, #00b4d8);
-   color: #fff;
-   padding: 20px;
-   text-align: center;
-   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-   margin-bottom: 30px;
-   border-radius: 8px;
- }
- 
- header h1 {
-   margin-bottom: 10px;
-   font-size: 28px;
- }
- 
- nav a {
-   margin: 0 15px;
-   color: #fff;
-   text-decoration: none;
-   font-weight: 500;
-   transition: color 0.3s ease;
- }
- 
- nav a:hover {
-   color: #ffd700;
- }
- 
- main section, .viz-container {
-   background: #fff;
-   padding: 20px;
-   border-radius: 8px;
-   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-   margin-bottom: 40px;
- }
- 
- main section h2, .viz-container h3 {
-   margin-bottom: 15px;
-   border-bottom: 2px solid #e0e0e0;
-   padding-bottom: 5px;
-   font-size: 20px;
- }
- 
- ul, p {
-   margin-top: 10px;
-   margin-bottom: 10px;
- }
- 
- #quarterTabs {
-   text-align: center;
-   margin-bottom: 20px;
- }
- 
- #quarterTabs .tab-button {
-   padding: 8px 16px;
-   margin: 0 5px;
-   border: none;
-   background: #007acc;
-   color: #fff;
-   cursor: pointer;
-   border-radius: 4px;
-   font-size: 14px;
-   transition: background 0.3s;
- }
- 
- #quarterTabs .tab-button:hover,
- #quarterTabs .tab-button.active {
-   background: #005fa3;
- }
- 
- .chart-svg {
-   background-color: #ffffff;
-   border: 1px solid #ccc;
-   border-radius: 4px;
-   margin-top: 10px;
- }
- 
- .tooltip {
-   position: absolute;
-   padding: 6px 10px;
-   background: rgba(0, 0, 0, 0.8);
-   color: #fff;
-   border-radius: 4px;
-   pointer-events: none;
-   font-size: 12px;
-   opacity: 0;
-   transition: opacity 0.2s;
- }
- 
- .legend {
-   font-size: 12px;
-   fill: #333;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #1a1a1a;
+}
+
+.tabs {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.tab-button {
+  padding: 8px 15px;
+  margin: 0 4px;
+  background: #e0e0e0;
+  border: none;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 25px 0;
+  padding-left: 10px;
+}
+
+
+#bar-chart text.label {
+  font-size: 16px;
+  font-weight: bold;
+  text-anchor: middle;
+  fill: #333;
+}
