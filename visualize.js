@@ -37,6 +37,26 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+function populateStateDropdown() {
+  const dropdown = document.getElementById("stateDropdown");
+  const states = Array.from(new Set(globalData.map(d => d.State))).sort();
+  dropdown.innerHTML = '<option value="ALL">ALL</option>';
+  states.forEach(state => {
+    const option = document.createElement("option");
+    option.value = state;
+    option.textContent = state;
+    dropdown.appendChild(option);
+  });
+}
+
+function updateCharts(quarter) {
+  drawBarChart(quarter);
+  drawMapPlotly(quarter);
+  drawScatterPlot(quarter);
+  embedAltairScatter(quarter);
+  embedAltairHistogram(quarter);
+}
+
 function drawBarChart(quarter) {
   const col = "Quarterly Total_" + quarter;
   const data = globalData
@@ -89,4 +109,110 @@ function drawBarChart(quarter) {
     });
 }
 
-// ⚠️ Paste the rest of your original drawMapPlotly, drawScatterPlot, embedAltairScatter, and embedAltairHistogram below this
+function drawMapPlotly(quarter) {
+  const col = "Quarterly Total_" + quarter;
+  const stateData = {};
+  globalData.forEach(d => {
+    const val = parseInt(d[col]?.replace(/,/g, ''));
+    if (!isNaN(val)) {
+      stateData[d.State] = (stateData[d.State] || 0) + val;
+    }
+  });
+
+  const states = Object.keys(stateData);
+  const values = states.map(s => stateData[s]);
+
+  const data = [{
+    type: 'choropleth',
+    locationmode: 'USA-states',
+    locations: states,
+    z: values,
+    colorscale: 'Blues',
+    colorbar: {
+      title: `${quarter} Total`,
+    },
+  }];
+
+  const layout = {
+    geo: {
+      scope: 'usa',
+    },
+    margin: { t: 0, b: 0 },
+  };
+
+  Plotly.newPlot('map', data, layout);
+}
+
+function drawScatterPlot(quarter) {
+  const depCol = `Dependent Students_${quarter}`;
+  const indCol = `Independent Students_${quarter}`;
+
+  let data = globalData.filter(d => d[depCol] && d[indCol]);
+
+  if (selectedState !== "ALL") {
+    data = data.filter(d => d.State === selectedState);
+  }
+
+  d3.select("#scatter-plot").html("");
+  const svg = d3.select("#scatter-plot").append("svg").attr("width", 800).attr("height", 400);
+
+  const x = d3.scaleLinear()
+    .domain([0, d3.max(data, d => +d[depCol].replace(/,/g, ''))])
+    .range([60, 750]);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => +d[indCol].replace(/,/g, ''))])
+    .range([350, 50]);
+
+  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
+  svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
+
+  svg.selectAll("circle")
+    .data(data)
+    .join("circle")
+    .attr("cx", d => x(+d[depCol].replace(/,/g, '')))
+    .attr("cy", d => y(+d[indCol].replace(/,/g, '')))
+    .attr("r", 4)
+    .attr("fill", "#1f77b4");
+}
+
+function embedAltairScatter(quarter) {
+  const cutoff = +document.getElementById("cutoffRange").value;
+  const field = `Quarterly Total_${quarter}`;
+
+  const chart = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    description: "Altair Scatter Plot with Cutoff",
+    data: { url: "cleaned.csv" },
+    transform: [
+      { filter: `datum[\"${field}\"] != null && toNumber(datum[\"${field}\"]) >= ${cutoff}` }
+    ],
+    mark: "point",
+    encoding: {
+      x: { field: `Dependent Students_${quarter}`, type: "quantitative" },
+      y: { field: `Independent Students_${quarter}`, type: "quantitative" },
+      tooltip: [{ field: "School", type: "nominal" }]
+    }
+  };
+
+  vegaEmbed("#altair-scatter", chart, { actions: false });
+}
+
+function embedAltairHistogram(quarter) {
+  const chart = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    description: "Altair Histogram",
+    data: { url: "cleaned.csv" },
+    mark: "bar",
+    encoding: {
+      x: {
+        field: `Quarterly Total_${quarter}`,
+        bin: true,
+        type: "quantitative",
+        title: `FAFSA Total Applications (${quarter})`
+      },
+      y: { aggregate: "count", type: "quantitative" }
+    }
+  };
+  vegaEmbed("#altair-histogram", chart, { actions: false });
+}
