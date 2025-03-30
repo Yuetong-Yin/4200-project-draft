@@ -3,17 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FAFSA Application Trends Visualization</title>
+  <title>FAFSA Application Trends Dashboard</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 </head>
 <body>
+  <header>
+    <h1>FAFSA Visualizations</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="data_information.html">Data Information</a>
+      <a href="visualization.html">Visualizations</a>
+      <a href="conclusion.html">Conclusion</a>
+    </nav>
+  </header>
+
   <div class="container">
-    <h1>FAFSA Application Trends and Institutional Factors</h1>
+    <h2>FAFSA Application Trends and Institutional Factors</h2>
     <p>This dashboard explores FAFSA application patterns across U.S. institutions using D3 and Altair visualizations.</p>
 
     <div class="tabs">
@@ -25,7 +35,7 @@
     </div>
 
     <h2>Top 10 Institutions by FAFSA Applications</h2>
-    <div id="bar-chart" style="height: 700px;"></div>
+    <div id="bar-chart"></div>
 
     <h2>FAFSA Applications by State (Map)</h2>
     <div id="map"></div>
@@ -41,7 +51,7 @@
     <div id="altair-scatter"></div>
     <div class="controls">
       <label for="cutoffRange">Cutoff:</label>
-      <input type="range" id="cutoffRange" min="0" max="2000" step="10" value="500">
+      <input type="range" id="cutoffRange" min="0" max="1000" step="10" value="500">
       <span id="cutoffValue">500</span>
     </div>
 
