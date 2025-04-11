@@ -128,3 +128,10 @@ h2 {
   font-size: 12px;
   fill: #333;
 }
+
+.vega-embed {
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+}
