@@ -192,29 +192,40 @@ function embedAltairBoxplotAllQuarters() {
         field: "InstitutionType",
         type: "nominal",
         title: "Institution Type",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        axis: { labelFontSize: 12, titleFontSize: 14 }
       },
       y: {
         field: "Total",
         type: "quantitative",
         title: "FAFSA Applications",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        axis: { labelFontSize: 12, titleFontSize: 14 }
       },
       color: {
-        field: "Quarter",
+        field: "InstitutionType",
         type: "nominal",
-        title: "Quarter"
+        legend: null
+      },
+      column: {
+        field: "Quarter",
+        type: "ordinal",
+        title: "Quarter",
+        spacing: 20,
+        header: { labelFontSize: 14, titleFontSize: 16 }
       },
       tooltip: [
         { field: "Quarter", type: "nominal" },
         { field: "InstitutionType", type: "nominal" },
         { field: "Total", type: "quantitative" }
       ]
+    },
+    config: {
+      view: { stroke: "transparent" }
     }
   };
 
   vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
+
 
 function embedAltairHistogram(quarter) {
   const chart = {
