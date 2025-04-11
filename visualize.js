@@ -1,23 +1,11 @@
 let currentQuarter = "Q1";
 let globalData = [];
-let selectedState = "ALL";
 
 document.addEventListener("DOMContentLoaded", function () {
   d3.csv("cleaned.csv").then(data => {
     globalData = data;
-    populateStateDropdown();
     init();
     updateCharts(currentQuarter);
-  });
-
-  document.getElementById("cutoffRange").addEventListener("input", function () {
-    document.getElementById("cutoffValue").textContent = this.value;
-    embedAltairScatter(currentQuarter);
-  });
-
-  document.getElementById("stateDropdown").addEventListener("change", function () {
-    selectedState = this.value;
-    drawScatterPlot(currentQuarter);
   });
 
   document.querySelectorAll(".tab-button").forEach(button => {
@@ -30,37 +18,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-function populateStateDropdown() {
-  const stateDropdown = document.getElementById("stateDropdown");
-  const uniqueStates = Array.from(new Set(globalData.map(d => d.State.trim()).filter(d => d !== "")));
-
-  // Clear existing options
-  stateDropdown.innerHTML = "";
-
-  // Add 'ALL' option
-  const allOption = document.createElement("option");
-  allOption.value = "ALL";
-  allOption.textContent = "ALL";
-  stateDropdown.appendChild(allOption);
-
-  // Add state options
-  uniqueStates.sort().forEach(state => {
-    const option = document.createElement("option");
-    option.value = state;
-    option.textContent = state;
-    stateDropdown.appendChild(option);
-  });
-}
-
-
 function init() {}
 
 function updateCharts(quarter) {
   drawBarChart(quarter);
   drawMapPlotly(quarter);
-  drawScatterPlot(quarter);
-  embedAltairScatter(quarter);
-  embedAltairHistogram(quarter);
+  drawGroupedBarChart(quarter);     // Chart 5: New Grouped Bar
+  embedAltairBoxplot(quarter);      // Chart 4: New Boxplot
+  embedAltairHistogram(quarter);    // Chart 6: Histogram stays
 }
 
 function drawBarChart(quarter) {
@@ -148,65 +113,102 @@ function drawMapPlotly(quarter) {
   Plotly.newPlot('map', data, layout);
 }
 
-function drawScatterPlot(quarter) {
+function drawGroupedBarChart(quarter) {
   const depCol = `Dependent Students_${quarter}`;
   const indCol = `Independent Students_${quarter}`;
+  const stateData = {};
 
-  let data = globalData.filter(d => d[depCol] && d[indCol]);
+  globalData.forEach(d => {
+    const dep = parseInt(d[depCol]?.replace(/,/g, '') || 0);
+    const ind = parseInt(d[indCol]?.replace(/,/g, '') || 0);
+    if (!stateData[d.State]) {
+      stateData[d.State] = { dep: 0, ind: 0 };
+    }
+    stateData[d.State].dep += dep;
+    stateData[d.State].ind += ind;
+  });
 
-  if (selectedState !== "ALL") {
-    data = data.filter(d => d.State === selectedState);
-  }
-
-  d3.select("#scatter-plot").html("");
-  const svg = d3.select("#scatter-plot").append("svg").attr("width", 800).attr("height", 400);
-
-  const x = d3.scaleLinear()
-    .domain([0, d3.max(data, d => +d[depCol].replace(/,/g, ''))])
-    .range([60, 750]);
-
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => +d[indCol].replace(/,/g, ''))])
-    .range([350, 50]);
-
-  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(60,0)").call(d3.axisLeft(y));
-
-  svg.selectAll("circle")
-    .data(data)
-    .join("circle")
-    .attr("cx", d => x(+d[depCol].replace(/,/g, '')))
-    .attr("cy", d => y(+d[indCol].replace(/,/g, '')))
-    .attr("r", 4)
-    .attr("fill", "#1f77b4");
-}
-
-function embedAltairScatter(quarter) {
-  const cutoff = +document.getElementById("cutoffRange").value;
-  const field = `Quarterly Total_${quarter}`;
+  const topStates = Object.entries(stateData)
+    .sort((a, b) => (b[1].dep + b[1].ind) - (a[1].dep + a[1].ind))
+    .slice(0, 10)
+    .flatMap(([state, values]) => [
+      { State: state, Type: "Dependent", Applications: values.dep },
+      { State: state, Type: "Independent", Applications: values.ind }
+    ]);
 
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Altair Scatter Plot with Cutoff",
-    data: { url: "cleaned.csv" },
-    transform: [
-      { filter: `datum["${field}"] != null && toNumber(datum["${field}"]) >= ${cutoff}` }
-    ],
-    mark: "point",
+    description: "Grouped Bar Chart: FAFSA Applications by Top States",
+    data: { values: topStates },
+    mark: "bar",
     encoding: {
-      x: { field: `Dependent Students_${quarter}`, type: "quantitative" },
-      y: { field: `Independent Students_${quarter}`, type: "quantitative" },
-      tooltip: [{ field: "School", type: "nominal" }]
+      x: {
+        field: "State",
+        type: "nominal",
+        axis: { labelAngle: -30, labelFontSize: 12, titleFontSize: 16 }
+      },
+      y: {
+        field: "Applications",
+        type: "quantitative",
+        axis: { labelFontSize: 12, titleFontSize: 16 }
+      },
+      color: { field: "Type", type: "nominal" },
+      column: {
+        field: "Type",
+        type: "nominal",
+        header: { labelFontSize: 14 }
+      }
+    },
+    config: {
+      view: { step: 40 },
+      axis: { labelFont: "Segoe UI", titleFont: "Segoe UI" }
     }
   };
 
-  vegaEmbed("#altair-scatter", chart, { actions: false });
+  vegaEmbed("#grouped-bar", chart, { actions: false });
+}
+
+function embedAltairBoxplot(quarter) {
+  const chart = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    description: "Boxplot: FAFSA Total Applications by Institution Type",
+    data: { url: "cleaned.csv" },
+    transform: [
+      { filter: `datum["Quarterly Total_${quarter}"] != null` },
+      {
+        calculate: `toNumber(datum["Quarterly Total_${quarter}"])`,
+        as: "Total"
+      },
+      {
+        calculate: `datum.Type`,
+        as: "InstitutionType"
+      }
+    ],
+    mark: "boxplot",
+    encoding: {
+      x: {
+        field: "InstitutionType",
+        type: "nominal",
+        title: "Institution Type",
+        axis: { labelFontSize: 14, titleFontSize: 16 }
+      },
+      y: {
+        field: "Total",
+        type: "quantitative",
+        title: `FAFSA Applications (${quarter})`,
+        axis: { labelFontSize: 14, titleFontSize: 16 }
+      },
+      color: { field: "InstitutionType", type: "nominal" }
+    }
+  };
+
+  vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
 
 function embedAltairHistogram(quarter) {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Altair Histogram",
+    description: "Histogram of FAFSA Total Applications",
     data: { url: "cleaned.csv" },
     mark: "bar",
     encoding: {
@@ -214,9 +216,14 @@ function embedAltairHistogram(quarter) {
         field: `Quarterly Total_${quarter}`,
         bin: true,
         type: "quantitative",
-        title: `FAFSA Total Applications (${quarter})`
+        title: `FAFSA Total Applications (${quarter})`,
+        axis: { labelFontSize: 14, titleFontSize: 16 }
       },
-      y: { aggregate: "count", type: "quantitative" }
+      y: {
+        aggregate: "count",
+        type: "quantitative",
+        axis: { labelFontSize: 14, titleFontSize: 16 }
+      }
     }
   };
   vegaEmbed("#altair-histogram", chart, { actions: false });
