@@ -158,27 +158,31 @@ function drawGroupedBarChart(quarter) {
 }
 
 function embedAltairBoxplotAllQuarters() {
-  const quarters = ["Q1", "Q2", "Q3", "Q4", "Q5"];
-  const transforms = quarters.map(q => ({
-    calculate: `toNumber(datum["Quarterly Total_${q}"])`,
-    as: `Total_${q}`
-  }));
-
-  const reshaped = {
+  const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplot by Institution Type across All Quarters",
+    description: "Boxplot of FAFSA Applications by Institution Type Across Quarters",
     data: { url: "cleaned.csv" },
     transform: [
       {
-        fold: quarters.map(q => `Quarterly Total_${q}`),
+        fold: [
+          "Quarterly Total_Q1",
+          "Quarterly Total_Q2",
+          "Quarterly Total_Q3",
+          "Quarterly Total_Q4",
+          "Quarterly Total_Q5"
+        ],
         as: ["Quarter", "Total"]
       },
       {
-        filter: `datum["Total"] != null && isFinite(datum["Total"]) && datum["School Type"] != null && datum["School Type"] != ""`
+        calculate: "substring(datum.Quarter, 17)",
+        as: "QuarterLabel"
       },
       {
-        calculate: `substring(datum["Quarter"], 18)`,
-        as: "QuarterLabel"
+        filter: "datum['School Type'] != null && datum['School Type'] != '' && isFinite(datum.Total)"
+      },
+      {
+        calculate: "toNumber(datum.Total)",
+        as: "TotalNumeric"
       }
     ],
     mark: {
@@ -186,26 +190,30 @@ function embedAltairBoxplotAllQuarters() {
       tooltip: true
     },
     encoding: {
-      x: { field: "School Type", type: "nominal", title: "Institution Type" },
-      y: { field: "Total", type: "quantitative", title: "FAFSA Applications" },
-      color: { field: "School Type", type: "nominal" },
+      x: {
+        field: "School Type",
+        type: "nominal",
+        title: "Institution Type"
+      },
+      y: {
+        field: "TotalNumeric",
+        type: "quantitative",
+        title: "FAFSA Applications"
+      },
+      color: {
+        field: "School Type",
+        type: "nominal"
+      },
       facet: {
         field: "QuarterLabel",
         type: "ordinal",
         columns: 3,
         title: "Quarter"
-      },
-      tooltip: [
-        { field: "School", type: "nominal" },
-        { field: "State", type: "nominal" },
-        { field: "School Type", type: "nominal" },
-        { field: "QuarterLabel", type: "nominal" },
-        { field: "Total", type: "quantitative" }
-      ]
+      }
     }
   };
 
-  vegaEmbed("#altair-boxplot", reshaped, { actions: false });
+  vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
 
 function embedAltairHistogram(quarter) {
