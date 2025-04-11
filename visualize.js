@@ -164,11 +164,15 @@ function embedAltairBoxplot(quarter) {
     data: { url: "cleaned.csv" },
     transform: [
       {
+        calculate: `datum["School Type"] == null || datum["School Type"] === "" ? "Unknown" : datum["School Type"]`,
+        as: "InstitutionType"
+      },
+      {
         calculate: `toNumber(datum["Quarterly Total_${quarter}"])`,
         as: "Total"
       },
       {
-        filter: `datum["Total"] != null && isFinite(datum["Total"]) && datum["School Type"] != null && datum["School Type"] != ""`
+        filter: `datum["Total"] != null && isFinite(datum["Total"])`
       }
     ],
     mark: {
@@ -177,7 +181,7 @@ function embedAltairBoxplot(quarter) {
     },
     encoding: {
       x: {
-        field: "School Type",
+        field: "InstitutionType",
         type: "nominal",
         title: "Institution Type",
         axis: { labelFontSize: 14, titleFontSize: 16 }
@@ -188,11 +192,11 @@ function embedAltairBoxplot(quarter) {
         title: `FAFSA Applications (${quarter})`,
         axis: { labelFontSize: 14, titleFontSize: 16 }
       },
-      color: { field: "School Type", type: "nominal" },
+      color: { field: "InstitutionType", type: "nominal" },
       tooltip: [
         { field: "School", type: "nominal" },
         { field: "State", type: "nominal" },
-        { field: "School Type", type: "nominal", title: "Institution Type" },
+        { field: "InstitutionType", type: "nominal" },
         { field: "Total", type: "quantitative" }
       ]
     }
@@ -200,7 +204,6 @@ function embedAltairBoxplot(quarter) {
 
   vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
-
 
 function embedAltairHistogram(quarter) {
   const chart = {
