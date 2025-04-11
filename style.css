@@ -91,7 +91,7 @@ h2 {
   background: #005fa3;
 }
 
-/* Controls like dropdowns/sliders */
+/* Controls like dropdown */
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -114,30 +114,27 @@ h2 {
   border: 1px solid #ccc;
 }
 
-/* Chart containers */
+/* Chart container standardization */
 .chart-svg,
 .vega-embed {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
   margin: 20px 0;
   width: 100%;
-  max-width: 1000px;
-  height: 500px;
-  background-color: #fff;
-  border-radius: 5px;
+  max-width: 800px;
+  height: 400px;
 }
 
-/* Vega (Altair) cleanup */
+/* Remove default Vega background/box */
 .vega-embed {
-  background: none !important;
   box-shadow: none !important;
   border: none !important;
+  background: none !important;
   padding: 0 !important;
 }
 
-.vega-embed .vega-actions {
-  display: none !important;
-}
-
-/* Tooltip (D3) */
+/* Tooltips */
 .tooltip {
   position: absolute;
   padding: 6px 10px;
@@ -150,13 +147,13 @@ h2 {
   transition: opacity 0.2s;
 }
 
-/* Legend inside SVGs */
+/* Legends inside SVG */
 .legend {
   font-size: 14px;
   fill: #333;
 }
 
-/* Takeaway paragraphs */
+/* Takeaway paragraph */
 .takeaway {
   font-size: 17px;
   margin-top: 0.5rem;
