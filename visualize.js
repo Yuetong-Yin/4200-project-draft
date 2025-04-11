@@ -23,9 +23,9 @@ function init() {}
 function updateCharts(quarter) {
   drawBarChart(quarter);
   drawMapPlotly(quarter);
-  drawGroupedBarChart(quarter);     // Chart 5: New Grouped Bar
-  embedAltairBoxplot(quarter);      // Chart 4: New Boxplot
-  embedAltairHistogram(quarter);    // Chart 6: Histogram stays
+  drawGroupedBarChart(quarter);     // Chart 5: Enhanced Grouped Bar
+  embedAltairBoxplot(quarter);      // Chart 4: Enhanced Boxplot
+  embedAltairHistogram(quarter);    // Chart 6: Histogram
 }
 
 function drawBarChart(quarter) {
@@ -157,7 +157,12 @@ function drawGroupedBarChart(quarter) {
         field: "Type",
         type: "nominal",
         header: { labelFontSize: 14 }
-      }
+      },
+      tooltip: [
+        { field: "State", type: "nominal" },
+        { field: "Type", type: "nominal" },
+        { field: "Applications", type: "quantitative" }
+      ]
     },
     config: {
       view: { step: 40 },
@@ -171,23 +176,22 @@ function drawGroupedBarChart(quarter) {
 function embedAltairBoxplot(quarter) {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplot: FAFSA Total Applications by Institution Type",
+    description: "Boxplot of FAFSA Applications by Institution Type",
     data: { url: "cleaned.csv" },
     transform: [
-      { filter: `datum["Quarterly Total_${quarter}"] != null` },
+      { filter: `datum["Quarterly Total_${quarter}"] != null && datum["Type"] != null && datum["Type"] != ""` },
       {
         calculate: `toNumber(datum["Quarterly Total_${quarter}"])`,
         as: "Total"
-      },
-      {
-        calculate: `datum.Type`,
-        as: "InstitutionType"
       }
     ],
-    mark: "boxplot",
+    mark: {
+      type: "boxplot",
+      tooltip: true
+    },
     encoding: {
       x: {
-        field: "InstitutionType",
+        field: "Type",
         type: "nominal",
         title: "Institution Type",
         axis: { labelFontSize: 14, titleFontSize: 16 }
@@ -198,7 +202,13 @@ function embedAltairBoxplot(quarter) {
         title: `FAFSA Applications (${quarter})`,
         axis: { labelFontSize: 14, titleFontSize: 16 }
       },
-      color: { field: "InstitutionType", type: "nominal" }
+      color: { field: "Type", type: "nominal" },
+      tooltip: [
+        { field: "School", type: "nominal" },
+        { field: "State", type: "nominal" },
+        { field: "Type", type: "nominal" },
+        { field: `Quarterly Total_${quarter}`, type: "quantitative", title: "Total Applications" }
+      ]
     }
   };
 
@@ -223,7 +233,10 @@ function embedAltairHistogram(quarter) {
         aggregate: "count",
         type: "quantitative",
         axis: { labelFontSize: 14, titleFontSize: 16 }
-      }
+      },
+      tooltip: [
+        { field: `Quarterly Total_${quarter}`, type: "quantitative", title: "Applications" }
+      ]
     }
   };
   vegaEmbed("#altair-histogram", chart, { actions: false });
