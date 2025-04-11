@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FAFSA Application Trends Dashboard</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Libraries -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
@@ -26,6 +30,7 @@
     <h2>FAFSA Application Trends and Institutional Factors</h2>
     <p>This dashboard explores FAFSA application patterns across U.S. institutions using D3 and Altair visualizations.</p>
 
+    <!-- Quarter Selection Tabs -->
     <div class="tabs">
       <button class="tab-button active" data-quarter="Q1">Q1</button>
       <button class="tab-button" data-quarter="Q2">Q2</button>
@@ -34,30 +39,35 @@
       <button class="tab-button" data-quarter="Q5">Q5</button>
     </div>
 
+    <!-- Chart 1 -->
     <h2>Top 10 Institutions by FAFSA Applications</h2>
     <div id="bar-chart" class="chart-svg"></div>
     <p class="takeaway">
       <strong>Takeaway:</strong> This bar chart highlights the top 10 institutions with the highest FAFSA applications. Most are large public universities, suggesting their scale and accessibility play a major role in financial aid demand.
     </p>
 
+    <!-- Chart 2 -->
     <h2>FAFSA Applications by State (Map)</h2>
     <div id="map" class="chart-svg"></div>
     <p class="takeaway">
       <strong>Takeaway:</strong> The map visualizes FAFSA totals by state. States with larger populations—such as California, Texas, and New York—stand out, reflecting both demographic size and institutional reach.
     </p>
 
+    <!-- Chart 3 -->
     <h2>Top States by Dependent vs. Independent Applications</h2>
     <div id="grouped-bar" class="chart-svg"></div>
     <p class="takeaway">
       <strong>Takeaway:</strong> This grouped bar chart shows the top 10 states by total FAFSA applications, split into dependent and independent applicants. It highlights key differences in student composition across states.
     </p>
 
+    <!-- Chart 4 -->
     <h2>FAFSA Applications by Institution Type</h2>
     <div id="altair-boxplot" class="chart-svg"></div>
     <p class="takeaway">
-      <strong>Takeaway:</strong> This boxplot compares FAFSA totals between public and private institutions. It shows how public schools tend to have higher medians and broader variation in application volume.
+      <strong>Takeaway:</strong> This interactive boxplot compares FAFSA totals by <em>institution type</em> across quarters. Public institutions tend to have higher totals, with more variability in private and proprietary sectors.
     </p>
 
+    <!-- Chart 5 -->
     <h2>Distribution of FAFSA Applications (Histogram)</h2>
     <div id="altair-histogram" class="chart-svg"></div>
     <p class="takeaway">
@@ -65,6 +75,7 @@
     </p>
   </div>
 
+  <!-- Main JS -->
   <script src="visualize.js"></script>
 </body>
 </html>
