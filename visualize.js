@@ -176,7 +176,7 @@ function embedAltairBoxplot(quarter) {
     data: { url: "cleaned.csv" },
     transform: [
       {
-        calculate: `datum["Type"] == null || datum["Type"] === "" ? "Unknown" : datum["Type"]`,
+        calculate: `datum["School Type"] == null || datum["School Type"] === "" ? "Unknown" : datum["School Type"]`,
         as: "InstitutionType"
       },
       {
