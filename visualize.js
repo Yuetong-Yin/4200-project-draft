@@ -24,8 +24,8 @@ function updateCharts(quarter) {
   drawBarChart(quarter);
   drawMapPlotly(quarter);
   drawGroupedBarChart(quarter);
-  embedAltairBoxplot(quarter);
-  embedAltairHistogram(quarter);
+  embedAltairBoxplotAllQuarters(); // Chart 4 (show all quarters)
+  embedAltairHistogram(quarter);   // Chart 5 (stays per quarter)
 }
 
 function drawBarChart(quarter) {
@@ -142,22 +142,10 @@ function drawGroupedBarChart(quarter) {
     data: { values: topStates },
     mark: "bar",
     encoding: {
-      x: {
-        field: "State",
-        type: "nominal",
-        axis: { labelAngle: -30, labelFontSize: 12, titleFontSize: 16 }
-      },
-      y: {
-        field: "Applications",
-        type: "quantitative",
-        axis: { labelFontSize: 12, titleFontSize: 16 }
-      },
+      x: { field: "State", type: "nominal", axis: { labelAngle: -30 } },
+      y: { field: "Applications", type: "quantitative" },
       color: { field: "Type", type: "nominal" },
-      column: {
-        field: "Type",
-        type: "nominal",
-        header: { labelFontSize: 14 }
-      },
+      column: { field: "Type", type: "nominal" },
       tooltip: [
         { field: "State", type: "nominal" },
         { field: "Type", type: "nominal" },
@@ -169,22 +157,28 @@ function drawGroupedBarChart(quarter) {
   vegaEmbed("#grouped-bar", chart, { actions: false });
 }
 
-function embedAltairBoxplot(quarter) {
-  const chart = {
+function embedAltairBoxplotAllQuarters() {
+  const quarters = ["Q1", "Q2", "Q3", "Q4", "Q5"];
+  const transforms = quarters.map(q => ({
+    calculate: `toNumber(datum["Quarterly Total_${q}"])`,
+    as: `Total_${q}`
+  }));
+
+  const reshaped = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplot of FAFSA Applications by Institution Type",
+    description: "Boxplot by Institution Type across All Quarters",
     data: { url: "cleaned.csv" },
     transform: [
       {
-        calculate: `datum["School Type"] == null || datum["School Type"] === "" ? "Unknown" : datum["School Type"]`,
-        as: "InstitutionType"
+        fold: quarters.map(q => `Quarterly Total_${q}`),
+        as: ["Quarter", "Total"]
       },
       {
-        calculate: `toNumber(datum["Quarterly Total_${quarter}"])`,
-        as: "Total"
+        filter: `datum["Total"] != null && isFinite(datum["Total"]) && datum["School Type"] != null && datum["School Type"] != ""`
       },
       {
-        filter: `datum["Total"] != null && isFinite(datum["Total"])`
+        calculate: `substring(datum["Quarter"], 18)`,
+        as: "QuarterLabel"
       }
     ],
     mark: {
@@ -192,29 +186,26 @@ function embedAltairBoxplot(quarter) {
       tooltip: true
     },
     encoding: {
-      x: {
-        field: "InstitutionType",
-        type: "nominal",
-        title: "Institution Type",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+      x: { field: "School Type", type: "nominal", title: "Institution Type" },
+      y: { field: "Total", type: "quantitative", title: "FAFSA Applications" },
+      color: { field: "School Type", type: "nominal" },
+      facet: {
+        field: "QuarterLabel",
+        type: "ordinal",
+        columns: 3,
+        title: "Quarter"
       },
-      y: {
-        field: "Total",
-        type: "quantitative",
-        title: `FAFSA Applications (${quarter})`,
-        axis: { labelFontSize: 14, titleFontSize: 16 }
-      },
-      color: { field: "InstitutionType", type: "nominal" },
       tooltip: [
         { field: "School", type: "nominal" },
         { field: "State", type: "nominal" },
-        { field: "InstitutionType", type: "nominal" },
+        { field: "School Type", type: "nominal" },
+        { field: "QuarterLabel", type: "nominal" },
         { field: "Total", type: "quantitative" }
       ]
     }
   };
 
-  vegaEmbed("#altair-boxplot", chart, { actions: false });
+  vegaEmbed("#altair-boxplot", reshaped, { actions: false });
 }
 
 function embedAltairHistogram(quarter) {
@@ -228,13 +219,11 @@ function embedAltairHistogram(quarter) {
         field: `Quarterly Total_${quarter}`,
         bin: true,
         type: "quantitative",
-        title: `FAFSA Total Applications (${quarter})`,
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        title: `FAFSA Total Applications (${quarter})`
       },
       y: {
         aggregate: "count",
-        type: "quantitative",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        type: "quantitative"
       },
       tooltip: [
         { field: `Quarterly Total_${quarter}`, type: "quantitative", title: "Applications" }
