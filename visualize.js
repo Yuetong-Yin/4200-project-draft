@@ -23,9 +23,9 @@ function init() {}
 function updateCharts(quarter) {
   drawBarChart(quarter);
   drawMapPlotly(quarter);
-  drawGroupedBarChart(quarter);     // Chart 5: Enhanced Grouped Bar
-  embedAltairBoxplot(quarter);      // Chart 4: Enhanced Boxplot
-  embedAltairHistogram(quarter);    // Chart 6: Histogram
+  drawGroupedBarChart(quarter);
+  embedAltairBoxplot(quarter);
+  embedAltairHistogram(quarter);
 }
 
 function drawBarChart(quarter) {
@@ -163,10 +163,6 @@ function drawGroupedBarChart(quarter) {
         { field: "Type", type: "nominal" },
         { field: "Applications", type: "quantitative" }
       ]
-    },
-    config: {
-      view: { step: 40 },
-      axis: { labelFont: "Segoe UI", titleFont: "Segoe UI" }
     }
   };
 
@@ -179,10 +175,16 @@ function embedAltairBoxplot(quarter) {
     description: "Boxplot of FAFSA Applications by Institution Type",
     data: { url: "cleaned.csv" },
     transform: [
-      { filter: `datum["Quarterly Total_${quarter}"] != null && datum["Type"] != null && datum["Type"] != ""` },
+      {
+        calculate: `datum["Type"] == null || datum["Type"] === "" ? "Unknown" : datum["Type"]`,
+        as: "InstitutionType"
+      },
       {
         calculate: `toNumber(datum["Quarterly Total_${quarter}"])`,
         as: "Total"
+      },
+      {
+        filter: `datum["Total"] != null && isFinite(datum["Total"])`
       }
     ],
     mark: {
@@ -191,7 +193,7 @@ function embedAltairBoxplot(quarter) {
     },
     encoding: {
       x: {
-        field: "Type",
+        field: "InstitutionType",
         type: "nominal",
         title: "Institution Type",
         axis: { labelFontSize: 14, titleFontSize: 16 }
@@ -202,12 +204,12 @@ function embedAltairBoxplot(quarter) {
         title: `FAFSA Applications (${quarter})`,
         axis: { labelFontSize: 14, titleFontSize: 16 }
       },
-      color: { field: "Type", type: "nominal" },
+      color: { field: "InstitutionType", type: "nominal" },
       tooltip: [
         { field: "School", type: "nominal" },
         { field: "State", type: "nominal" },
-        { field: "Type", type: "nominal" },
-        { field: `Quarterly Total_${quarter}`, type: "quantitative", title: "Total Applications" }
+        { field: "InstitutionType", type: "nominal" },
+        { field: "Total", type: "quantitative" }
       ]
     }
   };
