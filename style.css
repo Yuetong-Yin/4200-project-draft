@@ -1,9 +1,11 @@
+/* Reset and box model */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Base layout */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f0f4f8;
@@ -12,8 +14,10 @@ body {
   max-width: 1200px;
   margin: 20px auto;
   padding: 0 15px;
+  font-size: 18px;
 }
 
+/* Header */
 header {
   background: linear-gradient(135deg, #007acc, #00b4d8);
   color: #fff;
@@ -26,7 +30,7 @@ header {
 
 header h1 {
   margin-bottom: 10px;
-  font-size: 28px;
+  font-size: 32px;
 }
 
 nav {
@@ -38,6 +42,7 @@ nav a {
   color: #fff;
   text-decoration: none;
   font-weight: 500;
+  font-size: 18px;
   transition: color 0.3s ease;
 }
 
@@ -45,21 +50,25 @@ nav a:hover {
   color: #ffd700;
 }
 
+/* Container */
 .container {
   background: #fff;
-  padding: 20px 30px;
+  padding: 30px;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
+/* Headings */
 h2 {
   margin-top: 2rem;
   margin-bottom: 0.5rem;
   color: #007acc;
+  font-size: 24px;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 5px;
 }
 
+/* Tabs */
 .tabs {
   text-align: center;
   margin: 20px 0;
@@ -73,7 +82,7 @@ h2 {
   color: #fff;
   cursor: pointer;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 16px;
   transition: background 0.3s ease;
 }
 
@@ -82,12 +91,14 @@ h2 {
   background: #005fa3;
 }
 
+/* Controls like dropdown */
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin: 1rem 0 2rem;
   align-items: center;
+  font-size: 16px;
 }
 
 .controls label {
@@ -97,12 +108,15 @@ h2 {
 
 .controls select,
 .controls input[type="range"] {
-  padding: 5px;
+  padding: 6px;
+  font-size: 16px;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
 
-.chart-svg {
+/* Chart container standardization */
+.chart-svg,
+.vega-embed {
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -112,6 +126,15 @@ h2 {
   height: 400px;
 }
 
+/* Remove default Vega background/box */
+.vega-embed {
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+}
+
+/* Tooltips */
 .tooltip {
   position: absolute;
   padding: 6px 10px;
@@ -119,19 +142,20 @@ h2 {
   color: #fff;
   border-radius: 4px;
   pointer-events: none;
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
+/* Legends inside SVG */
 .legend {
-  font-size: 12px;
+  font-size: 14px;
   fill: #333;
 }
 
-.vega-embed {
-  box-shadow: none !important;
-  border: none !important;
-  background: none !important;
-  padding: 0 !important;
+/* Takeaway paragraph */
+.takeaway {
+  font-size: 17px;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
 }
