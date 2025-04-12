@@ -161,7 +161,7 @@ function embedAltairBoxplotAllQuarters() {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     description: "Boxplot of FAFSA Applications across Institution Types and Quarters",
-    width: 180,   
+    width: 120,   
     height: 400, 
     data: { url: "cleaned.csv" },
     transform: [
@@ -211,7 +211,7 @@ function embedAltairBoxplotAllQuarters() {
         field: "Quarter",
         type: "ordinal",
         title: "Quarter",
-        spacing: 60,
+        spacing: 40,
         header: { labelFontSize: 14, titleFontSize: 16 }
       },
       tooltip: [
