@@ -209,7 +209,7 @@ function embedAltairBoxplotAllQuarters() {
         field: "Quarter",
         type: "ordinal",
         title: "Quarter",
-        spacing: 20,
+        spacing: 60,
         header: { labelFontSize: 14, titleFontSize: 16 }
       },
       tooltip: [
