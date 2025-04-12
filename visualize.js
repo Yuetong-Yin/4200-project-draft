@@ -231,6 +231,8 @@ function embedAltairHistogram(quarter) {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     description: "Histogram of FAFSA Total Applications",
+    width: 1000,  // Make it wider
+    height: 500,  // Make it taller
     data: { url: "cleaned.csv" },
     mark: "bar",
     encoding: {
@@ -238,11 +240,14 @@ function embedAltairHistogram(quarter) {
         field: `Quarterly Total_${quarter}`,
         bin: true,
         type: "quantitative",
-        title: `FAFSA Total Applications (${quarter})`
+        title: `FAFSA Total Applications (${quarter})`,
+        axis: { labelFontSize: 14, titleFontSize: 16 }
       },
       y: {
         aggregate: "count",
-        type: "quantitative"
+        type: "quantitative",
+        title: "Number of Institutions",
+        axis: { labelFontSize: 14, titleFontSize: 16 }
       },
       tooltip: [
         { field: `Quarterly Total_${quarter}`, type: "quantitative", title: "Applications" }
