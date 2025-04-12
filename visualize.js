@@ -160,7 +160,9 @@ function drawGroupedBarChart(quarter) {
 function embedAltairBoxplotAllQuarters() {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplot comparing FAFSA totals by Institution Type and Quarter",
+    description: "Boxplots of FAFSA Applications by Institution Type across Quarters",
+    width: 140,  // narrow width to allow spacing between facets
+    height: 400,
     data: { url: "cleaned.csv" },
     transform: [
       {
@@ -168,55 +170,61 @@ function embedAltairBoxplotAllQuarters() {
         as: "InstitutionType"
       },
       {
-        fold: ["Quarterly Total_Q1", "Quarterly Total_Q2", "Quarterly Total_Q3", "Quarterly Total_Q4", "Quarterly Total_Q5"],
+        fold: [
+          "Quarterly Total_Q1",
+          "Quarterly Total_Q2",
+          "Quarterly Total_Q3",
+          "Quarterly Total_Q4",
+          "Quarterly Total_Q5"
+        ],
         as: ["Quarter", "Total"]
       },
       {
-        calculate: "split(datum.Quarter, '_')[2]",
-        as: "QuarterNum"
+        calculate: `replace(datum.Quarter, 'Quarterly Total_', '')`,
+        as: "QuarterLabel"
       },
       {
-        calculate: "toNumber(datum.Total)",
+        calculate: `toNumber(datum.Total)`,
         as: "TotalNumeric"
       },
       {
-        filter: "datum.TotalNumeric != null && isFinite(datum.TotalNumeric)"
+        filter: `datum.TotalNumeric != null && isFinite(datum.TotalNumeric)`
       }
     ],
-    width: 180,  // per facet width
-    height: 500,
-    spacing: 30, // space between facets
-    mark: {
-      type: "boxplot",
-      extent: "min-max",
-      tooltip: true
-    },
+    mark: { type: "boxplot", extent: "min-max" },
     encoding: {
       x: {
         field: "InstitutionType",
         type: "nominal",
         title: "Institution Type",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        axis: { labelFontSize: 12, titleFontSize: 14 }
       },
       y: {
         field: "TotalNumeric",
         type: "quantitative",
         title: "FAFSA Applications",
-        axis: { labelFontSize: 14, titleFontSize: 16 }
+        axis: { labelFontSize: 12, titleFontSize: 14 }
       },
-      color: { field: "InstitutionType", type: "nominal" }
+      color: {
+        field: "InstitutionType",
+        type: "nominal"
+      }
     },
     facet: {
-      field: "QuarterNum",
+      field: "QuarterLabel",
       type: "ordinal",
-      title: "Quarter",
-      columns: 5
+      columns: 5,
+      title: "Quarter"
     },
-    resolve: { scale: { y: "shared" } }
+    config: {
+      view: { stroke: null },
+      axis: { grid: true }
+    }
   };
 
   vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
+
 
 function embedAltairHistogram(quarter) {
   const chart = {
