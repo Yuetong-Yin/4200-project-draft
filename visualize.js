@@ -233,8 +233,8 @@ function embedAltairHistogram(quarter) {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     description: "Histogram of FAFSA Total Applications",
-    width: 1000,  // Make it wider
-    height: 500,  // Make it taller
+    width: 800,  // Make it wider
+    height: 400,  // Make it taller
     data: { url: "cleaned.csv" },
     mark: "bar",
     encoding: {
