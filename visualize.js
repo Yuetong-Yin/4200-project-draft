@@ -160,7 +160,7 @@ function drawGroupedBarChart(quarter) {
 function embedAltairBoxplotAllQuarters() {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplot of FAFSA Applications across Institution Types and Quarters",
+    description: "Boxplot comparing FAFSA totals by Institution Type and Quarter",
     data: { url: "cleaned.csv" },
     transform: [
       {
@@ -169,22 +169,26 @@ function embedAltairBoxplotAllQuarters() {
       },
       {
         fold: ["Quarterly Total_Q1", "Quarterly Total_Q2", "Quarterly Total_Q3", "Quarterly Total_Q4", "Quarterly Total_Q5"],
-        as: ["Quarter", "TotalStr"]
+        as: ["Quarter", "Total"]
       },
       {
-        calculate: "toNumber(datum.TotalStr)",
-        as: "Total"
+        calculate: "split(datum.Quarter, '_')[2]",
+        as: "QuarterNum"
       },
       {
-        filter: "datum.Total != null && isFinite(datum.Total)"
+        calculate: "toNumber(datum.Total)",
+        as: "TotalNumeric"
       },
       {
-        calculate: "replace(datum.Quarter, 'Quarterly Total_', '')",
-        as: "Quarter"
+        filter: "datum.TotalNumeric != null && isFinite(datum.TotalNumeric)"
       }
     ],
+    width: 180,  // per facet width
+    height: 500,
+    spacing: 30, // space between facets
     mark: {
       type: "boxplot",
+      extent: "min-max",
       tooltip: true
     },
     encoding: {
@@ -192,40 +196,27 @@ function embedAltairBoxplotAllQuarters() {
         field: "InstitutionType",
         type: "nominal",
         title: "Institution Type",
-        axis: { labelFontSize: 12, titleFontSize: 14 }
+        axis: { labelFontSize: 14, titleFontSize: 16 }
       },
       y: {
-        field: "Total",
+        field: "TotalNumeric",
         type: "quantitative",
         title: "FAFSA Applications",
-        axis: { labelFontSize: 12, titleFontSize: 14 }
+        axis: { labelFontSize: 14, titleFontSize: 16 }
       },
-      color: {
-        field: "InstitutionType",
-        type: "nominal",
-        legend: null
-      },
-      column: {
-        field: "Quarter",
-        type: "ordinal",
-        title: "Quarter",
-        spacing: 60,
-        header: { labelFontSize: 14, titleFontSize: 16 }
-      },
-      tooltip: [
-        { field: "Quarter", type: "nominal" },
-        { field: "InstitutionType", type: "nominal" },
-        { field: "Total", type: "quantitative" }
-      ]
+      color: { field: "InstitutionType", type: "nominal" }
     },
-    config: {
-      view: { stroke: "transparent" }
-    }
+    facet: {
+      field: "QuarterNum",
+      type: "ordinal",
+      title: "Quarter",
+      columns: 5
+    },
+    resolve: { scale: { y: "shared" } }
   };
 
   vegaEmbed("#altair-boxplot", chart, { actions: false });
 }
-
 
 function embedAltairHistogram(quarter) {
   const chart = {
