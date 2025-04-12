@@ -160,9 +160,9 @@ function drawGroupedBarChart(quarter) {
 function embedAltairBoxplotAllQuarters() {
   const chart = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    description: "Boxplots of FAFSA Applications by Institution Type across Quarters",
-    width: 140,  // narrow width to allow spacing between facets
-    height: 400,
+    description: "Boxplot of FAFSA Applications across Institution Types and Quarters",
+    width: 180,   
+    height: 400, 
     data: { url: "cleaned.csv" },
     transform: [
       {
@@ -170,28 +170,25 @@ function embedAltairBoxplotAllQuarters() {
         as: "InstitutionType"
       },
       {
-        fold: [
-          "Quarterly Total_Q1",
-          "Quarterly Total_Q2",
-          "Quarterly Total_Q3",
-          "Quarterly Total_Q4",
-          "Quarterly Total_Q5"
-        ],
-        as: ["Quarter", "Total"]
+        fold: ["Quarterly Total_Q1", "Quarterly Total_Q2", "Quarterly Total_Q3", "Quarterly Total_Q4", "Quarterly Total_Q5"],
+        as: ["Quarter", "TotalStr"]
       },
       {
-        calculate: `replace(datum.Quarter, 'Quarterly Total_', '')`,
-        as: "QuarterLabel"
+        calculate: "toNumber(datum.TotalStr)",
+        as: "Total"
       },
       {
-        calculate: `toNumber(datum.Total)`,
-        as: "TotalNumeric"
+        filter: "datum.Total != null && isFinite(datum.Total)"
       },
       {
-        filter: `datum.TotalNumeric != null && isFinite(datum.TotalNumeric)`
+        calculate: "replace(datum.Quarter, 'Quarterly Total_', '')",
+        as: "Quarter"
       }
     ],
-    mark: { type: "boxplot", extent: "min-max" },
+    mark: {
+      type: "boxplot",
+      tooltip: true
+    },
     encoding: {
       x: {
         field: "InstitutionType",
@@ -200,25 +197,31 @@ function embedAltairBoxplotAllQuarters() {
         axis: { labelFontSize: 12, titleFontSize: 14 }
       },
       y: {
-        field: "TotalNumeric",
+        field: "Total",
         type: "quantitative",
         title: "FAFSA Applications",
         axis: { labelFontSize: 12, titleFontSize: 14 }
       },
       color: {
         field: "InstitutionType",
-        type: "nominal"
-      }
-    },
-    facet: {
-      field: "QuarterLabel",
-      type: "ordinal",
-      columns: 5,
-      title: "Quarter"
+        type: "nominal",
+        legend: null
+      },
+      column: {
+        field: "Quarter",
+        type: "ordinal",
+        title: "Quarter",
+        spacing: 60,
+        header: { labelFontSize: 14, titleFontSize: 16 }
+      },
+      tooltip: [
+        { field: "Quarter", type: "nominal" },
+        { field: "InstitutionType", type: "nominal" },
+        { field: "Total", type: "quantitative" }
+      ]
     },
     config: {
-      view: { stroke: null },
-      axis: { grid: true }
+      view: { stroke: "transparent" }
     }
   };
 
